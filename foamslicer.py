@@ -30,14 +30,28 @@ def getExtremePoints(val, idx):
                 if(j != idx):
                     pn.append(p[j])
             data.append(pn)
-    return data
+    return np.array(data)
 
 i = 1
-d = getExtremePoints(maxmin[0][i], i)
-print(d)
+d1 = getExtremePoints(maxmin[0][i], i)
+d2 = getExtremePoints(maxmin[1][i], i)
 
-x_values = [point[0] for point in d]
-y_values = [point[1] for point in d]
+# print("d1", d1)
 
-plt.plot(x_values, y_values, 'bo')  # 'bo' means blue circles
+x_values = [point[0] for point in d2]
+y_values = [point[1] for point in d2]
+
+# plt.plot(x_values, y_values, 'bo')  # 'bo' means blue circles
+
+print("d1", d1[:, 1])
+
+for i in range(0, len(d1[:]), 1):
+    print(i)
+    plt.plot(d1[i:i+2, 0], d1[i:i+2, 1], 'bo-')
+
 plt.show()
+
+# how to generate gcode?
+
+def generatePath(points):
+    pass

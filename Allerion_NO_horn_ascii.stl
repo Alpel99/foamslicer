@@ -1,0 +1,114 @@
+solid b'solid binary STL from Solid Edge, Unigraphics Solutions Inc.          \x00\x00\xcf\xc9\xc6v\x00\x00\x00\x00'
+facet normal -739.6699 0.0 3581.813
+  outer loop
+    vertex 1.5721376 29.475958 6.926874
+    vertex -34.245995 29.475958 -0.46982464
+    vertex -34.245995 -70.52404 -0.46982464
+  endloop
+endfacet
+facet normal -739.6699 0.0 3581.813
+  outer loop
+    vertex -34.245995 -70.52404 -0.46982464
+    vertex 1.5721376 -70.52404 6.926874
+    vertex 1.5721376 29.475958 6.926874
+  endloop
+endfacet
+facet normal 233.12888 0.0 354.47275
+  outer loop
+    vertex 5.116865 29.475958 4.5955853
+    vertex 1.5721376 29.475958 6.926874
+    vertex 1.5721376 -70.52404 6.926874
+  endloop
+endfacet
+facet normal 233.12888 0.0 354.47275
+  outer loop
+    vertex 1.5721376 -70.52404 6.926874
+    vertex 5.116865 -70.52404 4.5955853
+    vertex 5.116865 29.475958 4.5955853
+  endloop
+endfacet
+facet normal 0.0 20.349339 -0.0
+  outer loop
+    vertex 4.0493307 29.475958 -0.44305524
+    vertex 1.5721376 29.475958 6.926874
+    vertex 5.116865 29.475958 4.5955853
+  endloop
+endfacet
+facet normal 0.0 282.30017 0.0
+  outer loop
+    vertex 4.0493307 29.475958 -0.44305524
+    vertex -34.245995 29.475958 -0.46982464
+    vertex 1.5721376 29.475958 6.926874
+  endloop
+endfacet
+facet normal 0.0 6.2671804 0.0
+  outer loop
+    vertex 5.116865 29.475958 4.5955853
+    vertex 5.730806 29.475958 1.6226094
+    vertex 4.0493307 29.475958 -0.44305524
+  endloop
+endfacet
+facet normal 0.0 -6.2671814 0.0
+  outer loop
+    vertex 4.0493307 -70.52404 -0.44305524
+    vertex 5.730806 -70.52404 1.6226094
+    vertex 5.116865 -70.52404 4.5955853
+  endloop
+endfacet
+facet normal -0.0 -20.349339 0.0
+  outer loop
+    vertex 5.116865 -70.52404 4.5955853
+    vertex 1.5721376 -70.52404 6.926874
+    vertex 4.0493307 -70.52404 -0.44305524
+  endloop
+endfacet
+facet normal 0.0 -282.30014 -0.0
+  outer loop
+    vertex 1.5721376 -70.52404 6.926874
+    vertex -34.245995 -70.52404 -0.46982464
+    vertex 4.0493307 -70.52404 -0.44305524
+  endloop
+endfacet
+facet normal 297.2976 0.0 61.394073
+  outer loop
+    vertex 5.730806 29.475958 1.6226094
+    vertex 5.116865 29.475958 4.5955853
+    vertex 5.116865 -70.52404 4.5955853
+  endloop
+endfacet
+facet normal 297.2976 0.0 61.394073
+  outer loop
+    vertex 5.116865 -70.52404 4.5955853
+    vertex 5.730806 -70.52404 1.6226094
+    vertex 5.730806 29.475958 1.6226094
+  endloop
+endfacet
+facet normal 206.56645 0.0 -168.14752
+  outer loop
+    vertex 4.0493307 29.475958 -0.44305524
+    vertex 5.730806 29.475958 1.6226094
+    vertex 5.730806 -70.52404 1.6226094
+  endloop
+endfacet
+facet normal 206.56645 0.0 -168.14752
+  outer loop
+    vertex 5.730806 -70.52404 1.6226094
+    vertex 4.0493307 -70.52404 -0.44305524
+    vertex 4.0493307 29.475958 -0.44305524
+  endloop
+endfacet
+facet normal 2.67694 0.0 -3829.5327
+  outer loop
+    vertex 4.0493307 29.475958 -0.44305524
+    vertex 4.0493307 -70.52404 -0.44305524
+    vertex -34.245995 -70.52404 -0.46982464
+  endloop
+endfacet
+facet normal 2.67694 0.0 -3829.5327
+  outer loop
+    vertex -34.245995 -70.52404 -0.46982464
+    vertex -34.245995 29.475958 -0.46982464
+    vertex 4.0493307 29.475958 -0.44305524
+  endloop
+endfacet
+endsolid b'solid binary STL from Solid Edge, Unigraphics Solutions Inc.          \x00\x00\xcf\xc9\xc6v\x00\x00\x00\x00'

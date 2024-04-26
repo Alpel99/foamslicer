@@ -12,7 +12,7 @@ np.set_printoptions(suppress=True)
 ### INPUTS
 # which dim is linear
 i = 1
-# needs to flip xy dir?
+# needs to flip xy dir? - doesnt change a thing?
 flip = False
 
 mesh = meshio.read("Allerion_NO_horn.stl")
@@ -82,7 +82,20 @@ def getOffset(points1, points2):
     m1 = np.min(points1, axis=0)
     m2 = np.min(points2, axis=0)
     diff = m1-m2
-    print(diff)
+    return diff
 
-getOffset(c1, c2)
+offset = getOffset(c1, c2)
+
+"""gcode?
+set init stuff, whatever -> heat wire etc
+standard speed: move offset
+with speedcoeff: move both through their geometries
+    maybe need 2 coeffs: one for top, one for bottom
+    need to rech reverse point at the same time
+
+other problems:
+in what coordinates does gcode work?
+    conversion of some sort?
+standard offset from 0,0?
+"""
 

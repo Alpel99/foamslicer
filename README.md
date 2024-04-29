@@ -8,21 +8,39 @@ https://www.thingiverse.com/thing:94917/files
 gcode from online airfoil gcode generator
 https://www.diyrcwings.com/app/
 
+# Documentation
+* c1: big side, where foam starts
+* c2: potential smaller side, potential space to foam
+    * can swap/flip with flipx, flipy
+
+
 # ideas/todo
 ## pre points ?
 * need some stuff to flip?
 * some sort of length offset between piece and real dimension
     * shrink one side to account for it
+        * interpolate lines to accomodate for length distr?
 
 ## gcode
 * set init stuff, whatever -> heat wire etc
-* standard speed: move offset
-* with speedcoeff: move both through their geometries
-    * maybe need 2 coeffs: one for top, one for bottom
-    * need to rech reverse point at the same time
 
 * other problems:
-* in what coordinates does gcode work?
-    * conversion of some sort?
+* in what coordinates does gcode work? - mm
+    * conversion of some sort? - assume mm for stl?
 * standard offset from 0,0? -> foam not directly at start
     * maybe add standard entering offset to certainly be in foam
+
+* different speeds?
+    * simply coordinates for both shapes, nothing changes
+    * steps small enough for smaller one to not stop ?
+        * increase overall speed, if too long at place & smelting
+
+
+## basic 3d visualization of stl
+```python
+# import open3d as o3d
+
+mesh = o3d.io.read_triangle_mesh("Allerion_NO_horn.stl")
+mesh = mesh.compute_vertex_normals()
+o3d.visualization.draw_geometries([mesh], window_name="STL", left=1000, top=200, width=800, height=650)
+```

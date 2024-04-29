@@ -68,15 +68,13 @@ def evenOutPPs(pps1, pps2):
     if (d := np.sum(pps1)) != NUM_POINTS:
             r = np.argsort(pps1) if d < NUM_POINTS else np.argsort(pps1)[::-1]
             for i in range(abs(d-NUM_POINTS)):
-                if i == len(pps1): i = 0
-                ind = r[i]
+                ind = r[i % len(pps1)]
                 pps1[ind] = pps1[ind] +1 if d < NUM_POINTS else pps1[ind] -1 if pps1[ind] > 0 else pps1[ind]
                     
     if (s1 := np.sum(pps1)) != (s2 := np.sum(pps2)):
         r = np.argsort(pps2) if d < NUM_POINTS else np.argsort(pps2)[::-1]
         for i in range(abs(d-NUM_POINTS)):
-            if i == len(pps2): i = 0
-            ind = r[i]
+            ind = r[i % len(pps2)]
             pps2[ind] = pps2[ind] +1 if s2 < s1 else pps2[ind] -1 if pps2[ind] > 0 else pps2[ind]        
     return pps1, pps2
 

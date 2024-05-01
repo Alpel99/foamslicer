@@ -2,14 +2,14 @@ import meshio, datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
-from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT
+from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS
 
 np.set_printoptions(suppress=True)
 
 def getExtremePoints(val, mesh, idx):
     data = []
     for p in mesh:
-        if abs(p[idx] - val) < 2.220446049250313e-16:
+        if abs(p[idx] - val) < EPS:
             pn = []
             for j in range(0, len(p)):
                 if(j != idx):
@@ -61,6 +61,7 @@ def getPointsPerSegment(points, num_points, num_segments, segment_indices):
             l += getLength(points[j:j+2])
         data[i] = l
     s = np.sum(data)
+    if(s < 1e-15): return np.ones((num_segments,)).astype(int)
     data = (data/s)*num_points
     return data.astype(int)
 
@@ -175,15 +176,19 @@ def writeFile(c1p, c2p, shape_offset):
     reverseOffsetMvt(file1, shape_offset, OFFSET)
 
 if __name__ == "__main__":
-    mesh = meshio.read("Allerion_NO_horn.stl")
+    mesh = meshio.read(INPUT_NAME)
     shifted_mesh = shiftMesh(mesh)
     
     maxmin = getMeshMaxMin(shifted_mesh)
-
+    np.savetxt("mesh.txt", shifted_mesh, fmt="%f")
+    print(maxmin)
     c1 = getOrderedExtremePoints(maxmin, shifted_mesh, 0)
     c2 = getOrderedExtremePoints(maxmin, shifted_mesh, 1)
-    c1 = c1*1.5
-    c2 = c2+[10,1]
+    # c1 = c1*1.5
+    # c2 = c2+[10,1]
+
+    # print(c1)
+    # print(c2)
     
     c1,c2 = flipPoints(c1, c2, DIM_FLIP_Y, DIM_FLIP_X)
     
@@ -197,19 +202,19 @@ if __name__ == "__main__":
     c1p = getEvenPoints(c1, pps1, num_segments)
     c2p = getEvenPoints(c2, pps2, num_segments)
     
-    c2pe = getExtendedPoints(c1p, c2p, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX])
+    # c2pe = getExtendedPoints(c1p, c2p, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX])
     
     plotPoints(c1p, lbl="c1p")
-    plotPoints(c2p, lbl="c2p")
-    plotPoints(c2pe, True, lbl="c2pe")
+    plotPoints(c2p, lbl="c2p", show=True)
+    # plotPoints(c2pe, True, lbl="c2pe")
 
-    shape_offset = getOffset(c1p, c2pe)
+    shape_offset = getOffset(c1p, c2p)
     # print("shape_offset", shape_offset)
     # print("c1p", c1p)
     # print("c2p", c2p)
     # print("c2pe", c2pe)
     
     true_offset = shape_offset + OFFSET
-    writeFile(c1p + true_offset, c2pe + true_offset, shape_offset)
+    writeFile(c1p + true_offset, c2p + true_offset, shape_offset)
 
     

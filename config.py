@@ -1,6 +1,6 @@
 OFFSET = [10,10]
 
-NUM_POINTS = 50
+NUM_POINTS = 250
 
 # which dim is linear
 DIM_INDEX = 1
@@ -10,9 +10,15 @@ DIM_FLIP_X = False
 DIM_FLIP_Y = False
 
 # number of segments number of different curves used for interpolation
-NUM_SEGMENTS = 4
+NUM_SEGMENTS = 50
 
+INPUT_NAME = "rear-wing-test-for-cnc-cutter.stl"
+# INPUT_NAME = "Allerion_NO_horn.stl"
 OUTPUT_NAME = "out.ngc"
+
+# epsilon for points on same axis
+# EPS = 2.220446049250313e-16
+EPS = 200
 
 # Hot wire length (mm)
 HOTWIRE_LENGTH = 300

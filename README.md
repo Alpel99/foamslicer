@@ -15,6 +15,14 @@ https://www.diyrcwings.com/app/
 
 
 # ideas/todo
+## rotation of initial stl could be off:
+* get extreme points
+    * basically trapezoid
+* align axis with one of the sides
+    * need option to align with other sides
+        * e.g. dunno which one might be smaller
+
+
 ## pre points ?
 * need some stuff to flip?
 * some sort of length offset between piece and real dimension

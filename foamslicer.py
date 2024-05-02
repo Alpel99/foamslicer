@@ -2,6 +2,7 @@ import meshio, datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
+from scipy.spatial import ConvexHull
 from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS
 
 np.set_printoptions(suppress=True)
@@ -126,8 +127,8 @@ def reverseOffsetMvt(file, shape_offset, offset):
     writeG1Lines(file, [[0,0]], [[0,0]])     
     
 def shiftMesh(mesh):
-    minv = np.min(mesh.points, axis=0)
-    shifted_mesh = np.array(mesh.points) + abs(minv)
+    minv = np.min(mesh, axis=0)
+    shifted_mesh = np.array(mesh) + abs(minv)
     return shifted_mesh
         
 def checkHotwireDim(maxmin):
@@ -175,9 +176,105 @@ def writeFile(c1p, c2p, shape_offset):
     writeG1Lines(file1, c1p, c2p)
     reverseOffsetMvt(file1, shape_offset, OFFSET)
 
+
+def rotation_matrix(axis, angle):
+    axis = axis / np.linalg.norm(axis)
+    
+    u_x, u_y, u_z = axis
+    print("axis", axis)
+    
+    cos_theta = np.cos(angle)
+    sin_theta = np.sin(angle)
+    one_minus_cos = 1 - cos_theta
+    
+    R11 = cos_theta + u_x**2 * one_minus_cos
+    R12 = u_x * u_y * one_minus_cos - u_z * sin_theta
+    R13 = u_x * u_z * one_minus_cos + u_y * sin_theta
+    R21 = u_y * u_x * one_minus_cos + u_z * sin_theta
+    R22 = cos_theta + u_y**2 * one_minus_cos
+    R23 = u_y * u_z * one_minus_cos - u_x * sin_theta
+    R31 = u_z * u_x * one_minus_cos - u_y * sin_theta
+    R32 = u_z * u_y * one_minus_cos + u_x * sin_theta
+    R33 = cos_theta + u_z**2 * one_minus_cos
+    
+    rotation_matrix = np.array([[R11, R12, R13],
+                                [R21, R22, R23],
+                                [R31, R32, R33]])
+    
+    return rotation_matrix
+
+def rotateMesh(mesh):
+    hull = ConvexHull(mesh)
+    centroid = np.mean(mesh[hull.vertices], axis=0)
+
+    # Compute the covariance matrix of the vertices
+    covariance_matrix = np.cov(mesh.T)
+
+    # Compute the eigenvectors of the covariance matrix
+    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
+
+    # Sort eigenvectors by eigenvalues in descending order
+    idx = np.argsort(eigenvalues)[::-1]
+    eigenvectors = eigenvectors[:, idx]
+
+    # The principal axes are given by the columns of the eigenvector matrix
+    principal_axes = eigenvectors.T
+
+    rotated_mesh = np.copy(mesh)
+
+    for i in range(3):
+        # Define the reference axis as one of the principal axes
+        reference_axis = principal_axes[i]
+        
+        # Calculate the rotation axis
+        rotation_axis = np.cross(centroid, reference_axis)
+        rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
+        
+        # Calculate the rotation angle
+        rotation_angle = np.arccos(np.dot(centroid, reference_axis) / (np.linalg.norm(centroid) * np.linalg.norm(reference_axis)))
+        
+        # Generate rotation matrix
+        rot_mat = rotation_matrix(rotation_axis, rotation_angle)
+        
+        # Apply rotation transformation to the vertices
+        rotated_mesh = np.dot(rotated_mesh, rot_mat)
+
+    return rotated_mesh
+
+
+# def rotateMesh(mesh):
+#     hull = ConvexHull(mesh)
+#     # print(mesh[hull.vertices])
+#     centroid = np.mean(mesh[hull.vertices], axis=0)
+#     # print(centroid)
+
+#     rotated_mesh = np.copy(mesh)
+
+#     for i in range(3):
+#         reference_ax = np.zeros((3,))
+#         reference_ax[i] = 1
+#         # Calculate the rotation angle needed to align the centroid with the reference axis
+#         rotation_axis = np.cross(centroid, reference_ax)
+#         rotation_axis = rotation_axis/np.linalg.norm(rotation_axis)
+#         print("rotation_axis", rotation_axis)
+#         rotation_angle = np.arccos(np.dot(centroid, reference_ax) / (np.linalg.norm(centroid) * np.linalg.norm(reference_ax)))
+        
+#         # Apply rotation transformation to align the object with the reference axis
+#         rot_mat = rotation_matrix(rotation_axis, rotation_angle)
+#         # print(rot_mat)
+#         rotated_mesh = np.dot(rotated_mesh, rot_mat)
+
+
+    return rotated_mesh
+
 if __name__ == "__main__":
     mesh = meshio.read(INPUT_NAME)
-    shifted_mesh = shiftMesh(mesh)
+
+    # only work with points as mesh
+    points = mesh.points 
+    rotated_mesh = rotateMesh(points)
+    
+    shifted_mesh = shiftMesh(rotated_mesh)
     
     maxmin = getMeshMaxMin(shifted_mesh)
     np.savetxt("mesh.txt", shifted_mesh, fmt="%f")
@@ -187,8 +284,8 @@ if __name__ == "__main__":
     # c1 = c1*1.5
     # c2 = c2+[10,1]
 
-    # print(c1)
-    # print(c2)
+    print("c1", len(c1))
+    print("c2", len(c2))
     
     c1,c2 = flipPoints(c1, c2, DIM_FLIP_Y, DIM_FLIP_X)
     

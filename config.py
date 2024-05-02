@@ -3,7 +3,7 @@ OFFSET = [10,10]
 NUM_POINTS = 250
 
 # which dim is linear
-DIM_INDEX = 1
+DIM_INDEX = 0
 
 # needs to flip xy dir? - doesnt change a thing? -> have to *-1 the y values
 DIM_FLIP_X = False
@@ -18,7 +18,7 @@ OUTPUT_NAME = "out.ngc"
 
 # epsilon for points on same axis
 # EPS = 2.220446049250313e-16
-EPS = 200
+EPS = 10
 
 # Hot wire length (mm)
 HOTWIRE_LENGTH = 300

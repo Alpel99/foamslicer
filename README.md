@@ -15,7 +15,13 @@ https://www.diyrcwings.com/app/
 
 
 # ideas/todo
+## extension to hotwire length does not work at all
+* maybe try with 3d shear matrix, this could work imo
+
 ## rotation of initial stl could be off:
+* kinda works for 1 given axis with trapezoid now
+* maxbe should try to align/rotate other axis then aswell
+
 * get extreme points
     * basically trapezoid
 * align axis with one of the sides

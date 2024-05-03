@@ -1,13 +1,16 @@
 OFFSET = [10,10]
 
-NUM_POINTS = 250
+NUM_POINTS = 100
 
 # which dim is linear
-DIM_INDEX = 0
+DIM_INDEX = 1
+
+# which axis is surface normal to the trapezoid of the wing
+TRAPZ_IDX = 0
 
 # needs to flip xy dir? - doesnt change a thing? -> have to *-1 the y values
 DIM_FLIP_X = False
-DIM_FLIP_Y = False
+DIM_FLIP_Y = True
 
 # number of segments number of different curves used for interpolation
 NUM_SEGMENTS = 50
@@ -18,7 +21,10 @@ OUTPUT_NAME = "out.ngc"
 
 # epsilon for points on same axis
 # EPS = 2.220446049250313e-16
-EPS = 10
+EPS = 2
+
+# for parallel line check in trapezoid
+PARALLEL_EPS = 0.001
 
 # Hot wire length (mm)
 HOTWIRE_LENGTH = 300

@@ -1,9 +1,9 @@
-import meshio, datetime
+import meshio, datetime, itertools
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 from scipy.spatial import ConvexHull
-from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS
+from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX
 
 np.set_printoptions(suppress=True)
 
@@ -64,6 +64,9 @@ def getPointsPerSegment(points, num_points, num_segments, segment_indices):
     s = np.sum(data)
     if(s < 1e-15): return np.ones((num_segments,)).astype(int)
     data = (data/s)*num_points
+    indices = [data < 1]
+    off = np.sum(indices)
+    data[tuple(indices)] = 1
     return data.astype(int)
 
 def evenOutPPs(pps1, pps2):
@@ -128,7 +131,7 @@ def reverseOffsetMvt(file, shape_offset, offset):
     
 def shiftMesh(mesh):
     minv = np.min(mesh, axis=0)
-    shifted_mesh = np.array(mesh) + abs(minv)
+    shifted_mesh = np.array(mesh) - minv
     return shifted_mesh
         
 def checkHotwireDim(maxmin):
@@ -154,8 +157,10 @@ def flipPoints(c1, c2, flipy, flipx):
     if(flipx):
         c1, c2 = c2, c1
     if(flipy):
-        c1 *= -1
-        c2 *= -1
+        maxc1 = np.max(c1, axis=0)
+        maxc2 = np.max(c2, axis=0)
+        c1 = c1*-1 + maxc1
+        c2 = c2*-1 + maxc2
     return c1, c2
 
 def getSegments(c1, c2):
@@ -181,8 +186,6 @@ def rotation_matrix(axis, angle):
     axis = axis / np.linalg.norm(axis)
     
     u_x, u_y, u_z = axis
-    print("axis", axis)
-    
     cos_theta = np.cos(angle)
     sin_theta = np.sin(angle)
     one_minus_cos = 1 - cos_theta
@@ -196,89 +199,110 @@ def rotation_matrix(axis, angle):
     R31 = u_z * u_x * one_minus_cos - u_y * sin_theta
     R32 = u_z * u_y * one_minus_cos + u_x * sin_theta
     R33 = cos_theta + u_z**2 * one_minus_cos
-    
+        
     rotation_matrix = np.array([[R11, R12, R13],
                                 [R21, R22, R23],
                                 [R31, R32, R33]])
     
     return rotation_matrix
 
-def rotateMesh(mesh):
-    hull = ConvexHull(mesh)
-    centroid = np.mean(mesh[hull.vertices], axis=0)
-
-    # Compute the covariance matrix of the vertices
-    covariance_matrix = np.cov(mesh.T)
-
-    # Compute the eigenvectors of the covariance matrix
-    eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
-
-    # Sort eigenvectors by eigenvalues in descending order
-    idx = np.argsort(eigenvalues)[::-1]
-    eigenvectors = eigenvectors[:, idx]
-
-    # The principal axes are given by the columns of the eigenvector matrix
-    principal_axes = eigenvectors.T
-
-    rotated_mesh = np.copy(mesh)
-
-    for i in range(3):
-        # Define the reference axis as one of the principal axes
-        reference_axis = principal_axes[i]
-        
-        # Calculate the rotation axis
-        rotation_axis = np.cross(centroid, reference_axis)
-        rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
-        
-        # Calculate the rotation angle
-        rotation_angle = np.arccos(np.dot(centroid, reference_axis) / (np.linalg.norm(centroid) * np.linalg.norm(reference_axis)))
-        
-        # Generate rotation matrix
-        rot_mat = rotation_matrix(rotation_axis, rotation_angle)
-        
-        # Apply rotation transformation to the vertices
-        rotated_mesh = np.dot(rotated_mesh, rot_mat)
-
+def rotateMesh(points, parallelLinePoints, axis, pos):
+    p1, p2 = parallelLinePoints[0]
+    slope = (p2[1] - p1[1])/(p2[0]-p1[0])
+    rotation_angle = -np.arctan(slope) if not pos else np.arctan(slope)
+    # print("rotation_angle (radians)", rotation_angle)
+    
+    rotation_axis = np.zeros((3,))
+    rotation_axis[axis] = 1
+    
+    rot_mat = rotation_matrix(rotation_axis, rotation_angle)
+    rotated_mesh = np.dot(points, rot_mat)
     return rotated_mesh
 
+def find_trapezoid_corners(points):
+    # probably faster with sorting first?
+    min_x = np.min(points[:, 0])
+    max_x = np.max(points[:, 0])
+    min_y = np.min(points[:, 1])
+    max_y = np.max(points[:, 1])
+    
+    min_x_points = points[points[:, 0] == min_x]
+    max_x_points = points[points[:, 0] == max_x]
+    min_y_points = points[points[:, 1] == min_y]
+    max_y_points = points[points[:, 1] == max_y]
+  
+    min_x_point = min_x_points[0] if len(min_x_points) == 1 else np.average(min_x_points, axis=0)
+    min_y_point = min_y_points[0] if len(min_y_points) == 1 else np.average(min_y_points, axis=0)
+    max_y_point = max_y_points[0] if len(max_y_points) == 1 else np.average(max_y_points, axis=0)
+    max_x_point = max_x_points[0] if len(max_x_points) == 1 else np.average(max_x_points, axis=0)
+    
+    return np.array([min_x_point, max_x_point, min_y_point, max_y_point])
 
-# def rotateMesh(mesh):
-#     hull = ConvexHull(mesh)
-#     # print(mesh[hull.vertices])
-#     centroid = np.mean(mesh[hull.vertices], axis=0)
-#     # print(centroid)
 
-#     rotated_mesh = np.copy(mesh)
-
-#     for i in range(3):
-#         reference_ax = np.zeros((3,))
-#         reference_ax[i] = 1
-#         # Calculate the rotation angle needed to align the centroid with the reference axis
-#         rotation_axis = np.cross(centroid, reference_ax)
-#         rotation_axis = rotation_axis/np.linalg.norm(rotation_axis)
-#         print("rotation_axis", rotation_axis)
-#         rotation_angle = np.arccos(np.dot(centroid, reference_ax) / (np.linalg.norm(centroid) * np.linalg.norm(reference_ax)))
+def find_parallel_pairs(points):
+    # Initialize list to store parallel pairs
+    parallel_pairs = []
+    
+    # Generate all combinations of pairs of points
+    point_combinations = itertools.combinations(points, 2)
+    
+    # Iterate over each combination of point pairs
+    for pair1, pair2 in itertools.combinations(point_combinations, 2):
+        # Extract coordinates of the points
+        x1, y1 = pair1[0]
+        x2, y2 = pair1[1]
+        x3, y3 = pair2[0]
+        x4, y4 = pair2[1]
         
-#         # Apply rotation transformation to align the object with the reference axis
-#         rot_mat = rotation_matrix(rotation_axis, rotation_angle)
-#         # print(rot_mat)
-#         rotated_mesh = np.dot(rotated_mesh, rot_mat)
+        # Find slopes of the lines formed by the pairs
+        slope1 = (y2 - y1) / (x2 - x1)
+        slope2 = (y4 - y3) / (x4 - x3)
+        # Check if slopes are equal (parallel lines)
+        if abs(abs(slope1) - abs(slope2)) < PARALLEL_EPS:
+            parallel_pairs.append((pair1, pair2))
+    
+    if(len(parallel_pairs) > 0):
+        return parallel_pairs[0]
+    else:
+        raise Exception("No parallel pairs in trapezoid view found, is the shape off?")
 
 
-    return rotated_mesh
+def flipMesh(mesh, flipy, flipx, dim_idx):
+    flips = [flipy, flipx]
+    fliplist = [flips[i%2] if i != dim_idx else False for i in range(3)]
+    
+    flipped_mesh = mesh.copy()
+    for i,f in enumerate(fliplist):
+        if f:
+            flipped_mesh[:, i] = -flipped_mesh[:, i]
+    return flipped_mesh
 
+    
 if __name__ == "__main__":
     mesh = meshio.read(INPUT_NAME)
 
     # only work with points as mesh
-    points = mesh.points 
-    rotated_mesh = rotateMesh(points)
+    points = mesh.points
+    hull = ConvexHull(points)
+    indxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
+    hullpoints = points[hull.vertices][:, indxs[TRAPZ_IDX][0]]
+    maxPoints = find_trapezoid_corners(hullpoints)
+    # plotPoints(maxPoints, True)
+    parallelpair = find_parallel_pairs(maxPoints)
     
-    shifted_mesh = shiftMesh(rotated_mesh)
+    rotated_mesh = rotateMesh(points, parallelpair, indxs[TRAPZ_IDX][1], True)
+    # plotPoints(rotated_mesh[:, indxs[0][0]], True)
+    # plotPoints(rotated_mesh[:, indxs[1][0]], True)
+    # plotPoints(rotated_mesh[:, indxs[2][0]], True)
+
+    flipped_mesh = flipMesh(rotated_mesh, DIM_FLIP_Y, DIM_FLIP_X, DIM_INDEX)
+
+
+    shifted_mesh = shiftMesh(flipped_mesh)
     
     maxmin = getMeshMaxMin(shifted_mesh)
     np.savetxt("mesh.txt", shifted_mesh, fmt="%f")
-    print(maxmin)
+    # print(maxmin)
     c1 = getOrderedExtremePoints(maxmin, shifted_mesh, 0)
     c2 = getOrderedExtremePoints(maxmin, shifted_mesh, 1)
     # c1 = c1*1.5
@@ -287,31 +311,31 @@ if __name__ == "__main__":
     print("c1", len(c1))
     print("c2", len(c2))
     
-    c1,c2 = flipPoints(c1, c2, DIM_FLIP_Y, DIM_FLIP_X)
+    # c1,c2 = flipPoints(c1, c2, DIM_FLIP_Y, DIM_FLIP_X)
     
     num_segments, segment_indices = getSegments(c1, c2)
 
     pps1 = getPointsPerSegment(c1, NUM_POINTS, num_segments, segment_indices)
     pps2 = getPointsPerSegment(c2, NUM_POINTS, num_segments, segment_indices)
 
-    pps1, pps2 = evenOutPPs(pps1, pps2)
-    
+    # pps1, pps2 = evenOutPPs(pps1, pps2)
+    pps2 = pps1
     c1p = getEvenPoints(c1, pps1, num_segments)
     c2p = getEvenPoints(c2, pps2, num_segments)
     
-    # c2pe = getExtendedPoints(c1p, c2p, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX])
+    c2pe = getExtendedPoints(c2p, c1p, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX])
     
     plotPoints(c1p, lbl="c1p")
-    plotPoints(c2p, lbl="c2p", show=True)
-    # plotPoints(c2pe, True, lbl="c2pe")
+    plotPoints(c2p, lbl="c2p")
+    plotPoints(c2pe, True, lbl="c2pe")
 
-    shape_offset = getOffset(c1p, c2p)
+    shape_offset = getOffset(c1p, c2pe)
     # print("shape_offset", shape_offset)
     # print("c1p", c1p)
     # print("c2p", c2p)
     # print("c2pe", c2pe)
     
     true_offset = shape_offset + OFFSET
-    writeFile(c1p + true_offset, c2p + true_offset, shape_offset)
+    writeFile(c1p + true_offset, c2pe + true_offset, shape_offset)
 
     

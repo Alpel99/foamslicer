@@ -21,7 +21,7 @@ OUTPUT_NAME = "out.ngc"
 
 # epsilon for points on same axis
 # EPS = 2.220446049250313e-16
-EPS = 2
+EPS = 1
 
 # for parallel line check in trapezoid
 PARALLEL_EPS = 0.001

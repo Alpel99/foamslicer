@@ -40,7 +40,8 @@ def orderPoints(points):
     return ordered
 
 def getLength(points):
-    return np.sum(abs(points[1:]-points[:-1]))
+    # return np.sum(abs(points[1:]-points[:-1]))
+    return np.sum(np.sqrt(np.abs(points[1:, 0]-points[:-1, 0])))
         
 def getOffset(points1, points2):
     m1 = np.min(points1, axis=0)
@@ -66,7 +67,7 @@ def getPointsPerSegment(points, num_points, num_segments, segment_indices):
     data = (data/s)*num_points
     indices = [data < 1]
     off = np.sum(indices)
-    data[tuple(indices)] = 1
+    # data[tuple(indices)] = 1
     return data.astype(int)
 
 def evenOutPPs(pps1, pps2):
@@ -113,7 +114,7 @@ def writeG1Lines(file, points1, points2):
         Y = round(p1[1], 2)
         U = round(p2[0], 2)
         V = round(p2[1], 2)
-        file.write("G1 X%.2f Y%.2f U%.2f V%.2f\n" % (X, Y, U, V))
+        file.write("G1 X%.2f Y%.2f A%.2f Z%.2f\n" % (X, Y, U, V))
         
 def writeOffsetMvt(file, shape_offset, offset):
     file.write(("( OFFSET )\n"))
@@ -277,6 +278,58 @@ def flipMesh(mesh, flipy, flipx, dim_idx):
             flipped_mesh[:, i] = -flipped_mesh[:, i]
     return flipped_mesh
 
+def getSplines(points, nsegments):
+    data = [points[0][0]]
+    xmax = np.argmax(points[:, 0])
+    xmin = np.argmin(points[:, 0])
+    l = len(points)
+    # print(l, xmax, xmin)
+    # print(points[0], points[l-1], points[xmax], points[xmin])
+    lens = np.zeros((l-1,))
+    for i in range(l-1):
+        lens[i] = getLength(points[i:i+2])
+    lensum = np.sum(lens)
+    lenperseg = lensum/nsegments
+    splines = [None]*nsegments
+    flip, flip2 = False, False
+    c0,c = 0,0
+    for i in range(0, nsegments):
+        if(c < l-1):
+            segsum = 0
+            while(segsum < lenperseg and c < l-1):
+                segsum += lens[c]
+                c += 1
+                ## only have splines with good xvalues
+                if(c != 0 and c != l and (c == xmax or c == xmin)): 
+                    print("Break")
+                    data.append(points[c][0])
+                    flip = not flip
+                    break
+            # print(c0, c)
+            x = points[c0:c+1, 0] if flip2 else points[c0:c+1, 0][::-1]
+            y = points[c0:c+1, 1] if flip2 else points[c0:c+1, 1][::-1]
+            flip2 = flip
+            # print(x)
+            cs = CubicSpline(x, y)
+            c0 = c
+            splines[i] = (cs, np.sum(lens[c0:c]))
+    return lensum, splines
+
+
+def getPointsFromSplines(lensum, splines, num_points):
+    dPoints = lensum/num_points
+    data = np.zeros((num_points, 2), dtype=float)
+    sidx = 0
+    trlsum = 0
+    for i in range(num_points):
+        d = dPoints*i
+        while(splines[sidx][1] < d):
+            trlsum += splines[sidx][1]
+            sidx += 1
+        data[i][0] = dPoints*i
+        data[i][1] = splines[sidx][0]()
+
+    return data
     
 if __name__ == "__main__":
     mesh = meshio.read(INPUT_NAME)
@@ -289,7 +342,12 @@ if __name__ == "__main__":
     maxPoints = find_trapezoid_corners(hullpoints)
     # plotPoints(maxPoints, True)
     parallelpair = find_parallel_pairs(maxPoints)
-    
+
+    # plotPoints(points[:, indxs[0][0]], True)
+    # plotPoints(points[:, indxs[1][0]], True)
+    # plotPoints(points[:, indxs[2][0]], True)    
+
+    # rotated_mesh = points
     rotated_mesh = rotateMesh(points, parallelpair, indxs[TRAPZ_IDX][1], True)
     # plotPoints(rotated_mesh[:, indxs[0][0]], True)
     # plotPoints(rotated_mesh[:, indxs[1][0]], True)
@@ -310,6 +368,15 @@ if __name__ == "__main__":
 
     print("c1", len(c1))
     print("c2", len(c2))
+
+    plotPoints(c1, show=True)
+    splines1 = getSplines(c1, NUM_SEGMENTS)
+    print(splines1)
+
+
+    cp1 = getPointsFromSplines(splines1, NUM_POINTS)
+
+    exit()
     
     # c1,c2 = flipPoints(c1, c2, DIM_FLIP_Y, DIM_FLIP_X)
     
@@ -318,7 +385,7 @@ if __name__ == "__main__":
     pps1 = getPointsPerSegment(c1, NUM_POINTS, num_segments, segment_indices)
     pps2 = getPointsPerSegment(c2, NUM_POINTS, num_segments, segment_indices)
 
-    # pps1, pps2 = evenOutPPs(pps1, pps2)
+    pps1, pps2 = evenOutPPs(pps1, pps2)
     pps2 = pps1
     c1p = getEvenPoints(c1, pps1, num_segments)
     c2p = getEvenPoints(c2, pps2, num_segments)

@@ -15,8 +15,15 @@ https://www.diyrcwings.com/app/
 
 
 # ideas/todo
+## even points with splines
+    * 2d values by splines from distance
+    * works meh -> get bcs?
+    * maybe order points from one end -> would make most of that shit easier
+
+
 ## extension to hotwire length does not work at all
 * maybe try with 3d shear matrix, this could work imo
+    * just do even points properly
 
 ## rotation of initial stl could be off:
 * kinda works for 1 given axis with trapezoid now

@@ -1,6 +1,6 @@
 OFFSET = [10,10]
 
-NUM_POINTS = 100
+NUM_POINTS = 50
 
 # which dim is linear
 DIM_INDEX = 1
@@ -9,11 +9,11 @@ DIM_INDEX = 1
 TRAPZ_IDX = 0
 
 # needs to flip xy dir? - doesnt change a thing? -> have to *-1 the y values
-DIM_FLIP_X = False
-DIM_FLIP_Y = True
+DIM_FLIP_X = True
+DIM_FLIP_Y = False
 
 # number of segments number of different curves used for interpolation
-NUM_SEGMENTS = 4
+NUM_SEGMENTS = 20
 
 INPUT_NAME = "rear-wing-test-for-cnc-cutter.stl"
 # INPUT_NAME = "Allerion_NO_horn.stl"

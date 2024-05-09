@@ -1,7 +1,7 @@
 import meshio, datetime, itertools
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import CubicSpline, interp2d
+from scipy.interpolate import CubicSpline, make_interp_spline
 from scipy.spatial import ConvexHull
 from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX
 
@@ -152,6 +152,8 @@ def getOrderedExtremePoints(maxmin, mesh, idx):
     points = getExtremePoints(maxmin[idx][DIM_INDEX], mesh, DIM_INDEX)
     # plotPoints(d1)
     #convex
+    xmax = np.argmax(points[:, 1])
+    np.roll(points, xmax)
     return orderPoints(points)
 
 def flipPoints(c1, c2, flipy, flipx):
@@ -270,10 +272,17 @@ def find_parallel_pairs(points):
 
 def flipMesh(mesh, flipy, flipx, dim_idx):
     flips = [flipy, flipx]
-    fliplist = [flips[i%2] if i != dim_idx else False for i in range(3)]
-    
+    fliplist = []
+    idx = 0
+    for i in range(3):
+        if i != dim_idx:
+            fliplist.append(flips[idx])
+            idx += 1
+        else:
+            fliplist.append(False)
     flipped_mesh = mesh.copy()
     for i,f in enumerate(fliplist):
+        print(i,f)
         if f:
             flipped_mesh[:, i] = -flipped_mesh[:, i]
     return flipped_mesh
@@ -292,38 +301,66 @@ def getSplines(points, nsegments):
     lensum = np.sum(lens)
     lencumsum = np.cumsum(lens)
     lenperseg = lensum/nsegments
-    splines = [None]*nsegments
+    splines = []
     c0,c = 0,0
     for i in range(0, nsegments):
         if(c < l-1):
             segsum = 0
             if(c == 408): print(segsum, lenperseg, lens[c])
-            while(segsum < lenperseg and c < l-1):
+            while((segsum < lenperseg or i == nsegments-1) and c < l-1):
                 # if(segsum + lens[c] > lenperseg): break
+                if(c != 0 and c != l and (c == xmax or c == xmin) and segsum != 0 and i != nsegments-1):
+                    break
                 segsum += lens[c]
                 c += 1
-                if(c != 0 and c != l and (c == xmax or c == xmin)): 
-                    break
-            # print(c0, c)
-            ind = points[c0:c+1]
-            # print(ind)
-            # print(lencumsum[c0:c+1], ind)
-            cs = CubicSpline(lencumsum[c0:c+1], ind)
+            i0 = c0-1 if c0 > 0 else c0
+            i1 = c+2
+            # i0 = c0
+            # i1 = c+1
+            print(i0, i1)
+            ind = points[i0:i1]
+            if(i == 9):
+                np.savetxt("files/points.txt", ind)
+                np.savetxt("files/dists.txt", lencumsum[i0:i1])
+            # print(len(lencumsum[c0:c+1]), len(ind))
+            # print(lencumsum[i0:i1], ind)
+            # plt.plot(ind[: ,0], ind[:, 1], label=i)
+            cs = make_interp_spline(lencumsum[i0:i1], ind, k=1)
             c0 = c
-            splines[i] = (cs, lencumsum[c])
+            splines.append((cs, lencumsum[min(c+1, l-1)]))
+    # plt.axis('equal')
+    # plt.legend()
+    # plt.show()
     return lensum, splines
 
 def getPointsFromSplines(lensum, splines, num_points):
-    dPoints = lensum/num_points
+    dPoints = lensum/(num_points-1)
     data = np.zeros((num_points, 2), dtype=float)
     sidx = 0
     for i in range(num_points):
         d = dPoints*i
-        while(splines[sidx][1] < d):
+        while(d > splines[sidx][1] and sidx < len(splines)-1):
             sidx += 1
         data[i] = splines[sidx][0](d)
     return data
     
+def plotSplines(splines1, numpoints):
+    plt.figure(1)
+    for i in range(len(splines1)):
+        x0 = 0 if i == 0 else splines1[i-1][1]
+        x1 = lensum1 if i == len(splines1)-1 else splines1[i][1]
+        ps = int(numpoints*(x1-x0)/lensum1)
+        s = np.linspace(x0,x1, ps)
+        print(s)
+        d = splines1[i][0](s)
+        print(d)
+        plt.axis("equal")
+        plt.plot(d[:, 0], d[:, 1], label=i)
+    plt.xlim(0,80)
+    plt.ylim(-20,45)
+    plt.legend()
+    plt.show()
+
 if __name__ == "__main__":
     mesh = meshio.read(INPUT_NAME)
     
@@ -348,11 +385,10 @@ if __name__ == "__main__":
 
     flipped_mesh = flipMesh(rotated_mesh, DIM_FLIP_Y, DIM_FLIP_X, DIM_INDEX)
 
-
     shifted_mesh = shiftMesh(flipped_mesh)
     
     maxmin = getMeshMaxMin(shifted_mesh)
-    np.savetxt("mesh.txt", shifted_mesh, fmt="%f")
+    # np.savetxt("mesh.txt", shifted_mesh, fmt="%f")
     # print(maxmin)
     c1 = getOrderedExtremePoints(maxmin, shifted_mesh, 0)
     c2 = getOrderedExtremePoints(maxmin, shifted_mesh, 1)
@@ -362,20 +398,13 @@ if __name__ == "__main__":
     print("c1", len(c1))
     print("c2", len(c2))
 
-    plotPoints(c1, show=True)
+    plotPoints(c1)
     lensum1, splines1 = getSplines(c1, NUM_SEGMENTS)
     print("lensum1", lensum1)
     
-    for i in range(len(splines1)):
-        x0 = 0 if i == 0 else splines1[i][1]
-        x1 = lensum1 if i == len(splines1)-1 else splines1[i+1][1]
-        s = np.linspace(x0,x1, 4)
-        print(s)
-        d = splines1[i][0](s)
-        print(d)
-        plt.plot(d[:][0], d[:][1])
+    # np.savetxt("files/allpoints.txt", c1)
     
-    plt.show()
+    # plotSplines(splines1, NUM_POINTS)
 
     cp1 = getPointsFromSplines(lensum1, splines1, NUM_POINTS)
     plotPoints(cp1, show=True)

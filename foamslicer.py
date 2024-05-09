@@ -1,7 +1,7 @@
 import meshio, datetime, itertools
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import CubicSpline, interp2d
 from scipy.spatial import ConvexHull
 from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX
 
@@ -41,7 +41,7 @@ def orderPoints(points):
 
 def getLength(points):
     # return np.sum(abs(points[1:]-points[:-1]))
-    return np.sum(np.sqrt(np.abs(points[1:, 0]-points[:-1, 0])))
+    return np.sum(np.linalg.norm(points[1:]-points[:-1]))
         
 def getOffset(points1, points2):
     m1 = np.min(points1, axis=0)
@@ -279,61 +279,54 @@ def flipMesh(mesh, flipy, flipx, dim_idx):
     return flipped_mesh
 
 def getSplines(points, nsegments):
-    data = [points[0][0]]
     xmax = np.argmax(points[:, 0])
     xmin = np.argmin(points[:, 0])
     l = len(points)
-    # print(l, xmax, xmin)
-    # print(points[0], points[l-1], points[xmax], points[xmin])
+    # print(l)
     lens = np.zeros((l-1,))
     for i in range(l-1):
         lens[i] = getLength(points[i:i+2])
+    lastLength = max(getLength(points[-1:1]), 1e-9)
+    lens = np.append(lens, lastLength)
+    print(np.max(lens), np.argmax(lens))
     lensum = np.sum(lens)
+    lencumsum = np.cumsum(lens)
     lenperseg = lensum/nsegments
     splines = [None]*nsegments
-    flip, flip2 = False, False
     c0,c = 0,0
     for i in range(0, nsegments):
         if(c < l-1):
             segsum = 0
+            if(c == 408): print(segsum, lenperseg, lens[c])
             while(segsum < lenperseg and c < l-1):
+                # if(segsum + lens[c] > lenperseg): break
                 segsum += lens[c]
                 c += 1
-                ## only have splines with good xvalues
                 if(c != 0 and c != l and (c == xmax or c == xmin)): 
-                    print("Break")
-                    data.append(points[c][0])
-                    flip = not flip
                     break
             # print(c0, c)
-            x = points[c0:c+1, 0] if flip2 else points[c0:c+1, 0][::-1]
-            y = points[c0:c+1, 1] if flip2 else points[c0:c+1, 1][::-1]
-            flip2 = flip
-            # print(x)
-            cs = CubicSpline(x, y)
+            ind = points[c0:c+1]
+            # print(ind)
+            # print(lencumsum[c0:c+1], ind)
+            cs = CubicSpline(lencumsum[c0:c+1], ind)
             c0 = c
-            splines[i] = (cs, np.sum(lens[c0:c]))
+            splines[i] = (cs, lencumsum[c])
     return lensum, splines
-
 
 def getPointsFromSplines(lensum, splines, num_points):
     dPoints = lensum/num_points
     data = np.zeros((num_points, 2), dtype=float)
     sidx = 0
-    trlsum = 0
     for i in range(num_points):
         d = dPoints*i
         while(splines[sidx][1] < d):
-            trlsum += splines[sidx][1]
             sidx += 1
-        data[i][0] = dPoints*i
-        data[i][1] = splines[sidx][0]()
-
+        data[i] = splines[sidx][0](d)
     return data
     
 if __name__ == "__main__":
     mesh = meshio.read(INPUT_NAME)
-
+    
     # only work with points as mesh
     points = mesh.points
     hull = ConvexHull(points)
@@ -370,12 +363,23 @@ if __name__ == "__main__":
     print("c2", len(c2))
 
     plotPoints(c1, show=True)
-    splines1 = getSplines(c1, NUM_SEGMENTS)
-    print(splines1)
+    lensum1, splines1 = getSplines(c1, NUM_SEGMENTS)
+    print("lensum1", lensum1)
+    
+    for i in range(len(splines1)):
+        x0 = 0 if i == 0 else splines1[i][1]
+        x1 = lensum1 if i == len(splines1)-1 else splines1[i+1][1]
+        s = np.linspace(x0,x1, 4)
+        print(s)
+        d = splines1[i][0](s)
+        print(d)
+        plt.plot(d[:][0], d[:][1])
+    
+    plt.show()
 
-
-    cp1 = getPointsFromSplines(splines1, NUM_POINTS)
-
+    cp1 = getPointsFromSplines(lensum1, splines1, NUM_POINTS)
+    plotPoints(cp1, show=True)
+    
     exit()
     
     # c1,c2 = flipPoints(c1, c2, DIM_FLIP_Y, DIM_FLIP_X)

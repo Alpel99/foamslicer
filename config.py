@@ -13,7 +13,7 @@ DIM_FLIP_X = False
 DIM_FLIP_Y = True
 
 # number of segments number of different curves used for interpolation
-NUM_SEGMENTS = 50
+NUM_SEGMENTS = 4
 
 INPUT_NAME = "rear-wing-test-for-cnc-cutter.stl"
 # INPUT_NAME = "Allerion_NO_horn.stl"

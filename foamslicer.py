@@ -1,7 +1,7 @@
 import meshio, datetime, itertools
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import CubicSpline, make_interp_spline
+from scipy.interpolate import CubicSpline, make_interp_spline, UnivariateSpline
 from scipy.spatial import ConvexHull
 from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX
 
@@ -326,6 +326,7 @@ def getSplines(points, nsegments):
             # print(lencumsum[i0:i1], ind)
             # plt.plot(ind[: ,0], ind[:, 1], label=i)
             cs = make_interp_spline(lencumsum[i0:i1], ind, k=1)
+            # cs = UnivariateSpline(lencumsum[i0:i1], points, k=1, w=lens[i0:i1])
             c0 = c
             splines.append((cs, lencumsum[min(c+1, l-1)]))
     # plt.axis('equal')

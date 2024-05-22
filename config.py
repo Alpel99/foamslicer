@@ -1,6 +1,6 @@
 OFFSET = [10,10]
 
-NUM_POINTS = 50
+NUM_POINTS = 100
 
 # which dim is linear
 DIM_INDEX = 1
@@ -25,6 +25,9 @@ EPS = 1
 
 # for parallel line check in trapezoid
 PARALLEL_EPS = 0.001
+
+# epsilon for minimum x, in order to have 1 final point, and no problems with overlapping edges
+X_EPS = 0.1
 
 # Hot wire length (mm)
 HOTWIRE_LENGTH = 300

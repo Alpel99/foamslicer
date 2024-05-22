@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline, make_interp_spline, UnivariateSpline
 from scipy.spatial import ConvexHull
-from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX
+from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX, X_EPS
 
 np.set_printoptions(suppress=True)
 
@@ -31,12 +31,18 @@ def plotPoints(points, show=False, name="", lbl=""):
 
 def orderPoints(points):
     barycenter = np.mean(points, axis=0)
-    # print(barycenter)
-    vectors = points - barycenter
+    # print("barycenter", barycenter)
+    # print(np.argmin(points[:,0]))
+    vectors = points - points[np.argmin(points[:, 0])]
+    # vectors = points - barycenter
     angles = np.arctan2(vectors[:, 1], vectors[:, 0])
+    # print(angles)
+    angles = angles - np.pi/2
+    angles = np.mod(angles + np.pi, 2 * np.pi) - np.pi
     sorted_indices = np.argsort(angles)
+    # sorted_indices = np.lexsort((angles, points[:, 1]))
     ordered = points[sorted_indices]
-    ordered = np.vstack([ordered, ordered[0]])
+    # ordered = np.vstack([ordered, ordered[0]])
     return ordered
 
 def getLength(points):
@@ -152,9 +158,17 @@ def getOrderedExtremePoints(maxmin, mesh, idx):
     points = getExtremePoints(maxmin[idx][DIM_INDEX], mesh, DIM_INDEX)
     # plotPoints(d1)
     #convex
-    xmax = np.argmax(points[:, 1])
-    np.roll(points, xmax)
-    return orderPoints(points)
+    xmin = np.argmin(points[:, 0])
+    xminval = points[xmin]
+    points = points[points[:, 0]-xminval[0] > X_EPS]
+
+    # np.vstack([xminval, points[0]])
+
+    points = orderPoints(points)
+
+    print(points[0])
+    # print("unique4", len(np.unique(points, axis=0)) == len(points))
+    return points
 
 def flipPoints(c1, c2, flipy, flipx):
     if(flipx):
@@ -282,7 +296,7 @@ def flipMesh(mesh, flipy, flipx, dim_idx):
             fliplist.append(False)
     flipped_mesh = mesh.copy()
     for i,f in enumerate(fliplist):
-        print(i,f)
+        # print(i,f)
         if f:
             flipped_mesh[:, i] = -flipped_mesh[:, i]
     return flipped_mesh
@@ -290,13 +304,14 @@ def flipMesh(mesh, flipy, flipx, dim_idx):
 def getSplines(points, nsegments):
     xmax = np.argmax(points[:, 0])
     xmin = np.argmin(points[:, 0])
+    print(xmax, xmin)
     l = len(points)
     # print(l)
     lens = np.zeros((l-1,))
     for i in range(l-1):
         lens[i] = getLength(points[i:i+2])
-    lastLength = max(getLength(points[-1:1]), 1e-9)
-    lens = np.append(lens, lastLength)
+    # lastLength = max(getLength(points[-1:1]), 1e-9)
+    lens = np.append(0, lens)
     print(np.max(lens), np.argmax(lens))
     lensum = np.sum(lens)
     lencumsum = np.cumsum(lens)
@@ -306,32 +321,37 @@ def getSplines(points, nsegments):
     for i in range(0, nsegments):
         if(c < l-1):
             segsum = 0
-            if(c == 408): print(segsum, lenperseg, lens[c])
+            # if(c == 408): print(segsum, lenperseg, lens[c])
             while((segsum < lenperseg or i == nsegments-1) and c < l-1):
                 # if(segsum + lens[c] > lenperseg): break
-                if(c != 0 and c != l and (c == xmax or c == xmin) and segsum != 0 and i != nsegments-1):
+                # if i == 1: print(i, c, segsum, nsegments)
+                if(c != 0 and c != l and (c == xmax+1 or c == xmin+1) and segsum != 0 and i != nsegments-1):
                     break
                 segsum += lens[c]
                 c += 1
-            i0 = c0-1 if c0 > 0 else c0
-            i1 = c+2
-            # i0 = c0
-            # i1 = c+1
-            print(i0, i1)
+            # i0 = c0-1 if c0 > 0 else c0
+            # i1 = c+2
+            i0 = c0
+            i1 = c+1
+            # print(i0, i1)
             ind = points[i0:i1]
-            if(i == 9):
+            if(i == 0):
                 np.savetxt("files/points.txt", ind)
                 np.savetxt("files/dists.txt", lencumsum[i0:i1])
             # print(len(lencumsum[c0:c+1]), len(ind))
-            # print(lencumsum[i0:i1], ind)
-            # plt.plot(ind[: ,0], ind[:, 1], label=i)
-            cs = make_interp_spline(lencumsum[i0:i1], ind, k=1)
+            if i == 0:
+                print("getSplines", lencumsum[i0:i1], ind)
+                print(points[0])
+            # print("i, c", i, c)
+            plt.plot(ind[: ,0], ind[:, 1], label=i)
+            cs1 = make_interp_spline(lencumsum[i0:i1], ind[:, 0], k=1)
+            cs2 = make_interp_spline(lencumsum[i0:i1], ind[:, 1], k=1)
             # cs = UnivariateSpline(lencumsum[i0:i1], points, k=1, w=lens[i0:i1])
             c0 = c
-            splines.append((cs, lencumsum[min(c+1, l-1)]))
-    # plt.axis('equal')
-    # plt.legend()
-    # plt.show()
+            splines.append([lencumsum[min(c+1, l-1)], (cs1, cs2)])
+    plt.axis('equal')
+    plt.legend()
+    plt.show()
     return lensum, splines
 
 def getPointsFromSplines(lensum, splines, num_points):
@@ -340,9 +360,11 @@ def getPointsFromSplines(lensum, splines, num_points):
     sidx = 0
     for i in range(num_points):
         d = dPoints*i
-        while(d > splines[sidx][1] and sidx < len(splines)-1):
+        while(d > splines[sidx][0] and sidx < len(splines)-1):
             sidx += 1
-        data[i] = splines[sidx][0](d)
+        data[i][0] = splines[sidx][1][0](d)
+        data[i][1] = splines[sidx][1][1](d)
+        print(i, d, sidx, data[i])
     return data
     
 def plotSplines(splines1, numpoints):
@@ -399,16 +421,20 @@ if __name__ == "__main__":
     print("c1", len(c1))
     print("c2", len(c2))
 
-    plotPoints(c1)
+    # plt.plot(71.12256383, 12.86723513, "x")
+    # plotPoints(c1, True)
     lensum1, splines1 = getSplines(c1, NUM_SEGMENTS)
-    print("lensum1", lensum1)
+    lensum2, splines2 = getSplines(c2, NUM_SEGMENTS)
+    # print("lensum1", lensum1)
     
     # np.savetxt("files/allpoints.txt", c1)
     
     # plotSplines(splines1, NUM_POINTS)
 
     cp1 = getPointsFromSplines(lensum1, splines1, NUM_POINTS)
-    plotPoints(cp1, show=True)
+    cp2 = getPointsFromSplines(lensum2, splines2, NUM_POINTS)
+    plotPoints(cp1)
+    plotPoints(cp2, show=True)
     
     exit()
     

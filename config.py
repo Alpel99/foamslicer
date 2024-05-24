@@ -32,6 +32,9 @@ X_EPS = 0.1
 # Hot wire length (mm)
 HOTWIRE_LENGTH = 300
 
+# Offset from 0 point (motor movement plane) (mm)
+HOTWIRE_OFFSET = 50
+
 GCODE_INIT = '''G17
 G21
 ( SET ABSOLUTE MODE )

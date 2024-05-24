@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline, make_interp_spline, UnivariateSpline
 from scipy.spatial import ConvexHull
-from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX, X_EPS
+from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, HOTWIRE_OFFSET, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX, X_EPS
 
 np.set_printoptions(suppress=True)
 
@@ -52,7 +52,7 @@ def getLength(points):
 def getOffset(points1, points2):
     m1 = np.min(points1, axis=0)
     m2 = np.min(points2, axis=0)
-    diff = m2-m1
+    diff = [min(m1[0],m2[0]), min(m1[1],m2[1])]
     return diff
 
 def splitCurve(points):
@@ -104,9 +104,9 @@ def getEvenPoints(points, points_per_segment, num_segments):
         data = np.vstack([data, cs(t)])
     return data
 
-def getExtendedPoints(p1, p2, p1x, p2x):
+def getExtendedPoints(p1, p2, p1x, p2x, len):
     data = np.zeros(p1.shape)
-    t = (p2x - p1x)/HOTWIRE_LENGTH
+    t = (p2x - p1x)/len
     for i, (pp1, pp2) in enumerate(zip(p1, p2)):
         data[i] = pp2 + t * (pp1 - pp2)
     return data
@@ -304,7 +304,7 @@ def flipMesh(mesh, flipy, flipx, dim_idx):
 def getSplines(points, nsegments):
     xmax = np.argmax(points[:, 0])
     xmin = np.argmin(points[:, 0])
-    print(xmax, xmin)
+    # print(xmax, xmin)
     l = len(points)
     # print(l)
     lens = np.zeros((l-1,))
@@ -312,7 +312,7 @@ def getSplines(points, nsegments):
         lens[i] = getLength(points[i:i+2])
     # lastLength = max(getLength(points[-1:1]), 1e-9)
     lens = np.append(0, lens)
-    print(np.max(lens), np.argmax(lens))
+    # print(np.max(lens), np.argmax(lens))
     lensum = np.sum(lens)
     lencumsum = np.cumsum(lens)
     lenperseg = lensum/nsegments
@@ -335,23 +335,20 @@ def getSplines(points, nsegments):
             i1 = c+1
             # print(i0, i1)
             ind = points[i0:i1]
-            if(i == 0):
-                np.savetxt("files/points.txt", ind)
-                np.savetxt("files/dists.txt", lencumsum[i0:i1])
+            # if(i == 0):
+                # np.savetxt("files/points.txt", ind)
+                # np.savetxt("files/dists.txt", lencumsum[i0:i1])
             # print(len(lencumsum[c0:c+1]), len(ind))
-            if i == 0:
-                print("getSplines", lencumsum[i0:i1], ind)
-                print(points[0])
             # print("i, c", i, c)
-            plt.plot(ind[: ,0], ind[:, 1], label=i)
+            # plt.plot(ind[: ,0], ind[:, 1], label=i)
             cs1 = make_interp_spline(lencumsum[i0:i1], ind[:, 0], k=1)
             cs2 = make_interp_spline(lencumsum[i0:i1], ind[:, 1], k=1)
             # cs = UnivariateSpline(lencumsum[i0:i1], points, k=1, w=lens[i0:i1])
             c0 = c
             splines.append([lencumsum[min(c+1, l-1)], (cs1, cs2)])
-    plt.axis('equal')
-    plt.legend()
-    plt.show()
+    # plt.axis('equal')
+    # plt.legend()
+    # plt.show()
     return lensum, splines
 
 def getPointsFromSplines(lensum, splines, num_points):
@@ -364,7 +361,7 @@ def getPointsFromSplines(lensum, splines, num_points):
             sidx += 1
         data[i][0] = splines[sidx][1][0](d)
         data[i][1] = splines[sidx][1][1](d)
-        print(i, d, sidx, data[i])
+        # print(i, d, sidx, data[i])
     return data
     
 def plotSplines(splines1, numpoints):
@@ -433,9 +430,19 @@ if __name__ == "__main__":
 
     cp1 = getPointsFromSplines(lensum1, splines1, NUM_POINTS)
     cp2 = getPointsFromSplines(lensum2, splines2, NUM_POINTS)
-    plotPoints(cp1)
-    plotPoints(cp2, show=True)
     
+    cp2e = getExtendedPoints(cp2, cp1, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX], HOTWIRE_LENGTH-HOTWIRE_OFFSET)
+    cp1e = getExtendedPoints(cp1, cp2, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX], HOTWIRE_OFFSET)
+
+    shape_offset = getOffset(cp1e, cp2e)
+
+
+
+    plt.figure()
+    plotPoints(cp1 - shape_offset)
+    plotPoints(cp2 - shape_offset)
+    plotPoints(cp1e - shape_offset, lbl="c1pe")
+    plotPoints(cp2e - shape_offset, True, lbl="c2pe")
     exit()
     
     # c1,c2 = flipPoints(c1, c2, DIM_FLIP_Y, DIM_FLIP_X)

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline, make_interp_spline, UnivariateSpline
 np.set_printoptions(suppress=True)
 
-from foamslicer import getLength
+from main import getLength
 
 points = np.genfromtxt("files/points.txt")
 dists = np.genfromtxt("files/dists.txt")

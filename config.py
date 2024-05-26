@@ -1,6 +1,6 @@
 OFFSET = [10,10]
 
-NUM_POINTS = 100
+NUM_POINTS = 20
 
 # which dim is linear
 DIM_INDEX = 1
@@ -13,7 +13,7 @@ DIM_FLIP_X = True
 DIM_FLIP_Y = False
 
 # number of segments number of different curves used for interpolation
-NUM_SEGMENTS = 20
+NUM_SEGMENTS = 4
 
 INPUT_NAME = "rear-wing-test-for-cnc-cutter.stl"
 # INPUT_NAME = "Allerion_NO_horn.stl"

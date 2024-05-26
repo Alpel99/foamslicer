@@ -49,10 +49,12 @@ def getLength(points):
     # return np.sum(abs(points[1:]-points[:-1]))
     return np.sum(np.linalg.norm(points[1:]-points[:-1]))
         
-def getOffset(points1, points2):
-    m1 = np.min(points1, axis=0)
-    m2 = np.min(points2, axis=0)
-    diff = [min(m1[0],m2[0]), min(m1[1],m2[1])]
+def getOffset(*argv):
+    data = []
+    for points in argv:
+        m1 = np.min(points, axis=0)
+        data.append(m1)
+    diff = np.min(data, axis=0)
     return diff
 
 def splitCurve(points):
@@ -432,16 +434,16 @@ if __name__ == "__main__":
     cp2 = getPointsFromSplines(lensum2, splines2, NUM_POINTS)
     
     cp2e = getExtendedPoints(cp2, cp1, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX], HOTWIRE_LENGTH-HOTWIRE_OFFSET)
-    cp1e = getExtendedPoints(cp1, cp2, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX], HOTWIRE_OFFSET)
+    # cp1e = getExtendedPoints(cp1, cp2, maxmin[0][DIM_INDEX], maxmin[1][DIM_INDEX], HOTWIRE_OFFSET)
 
-    shape_offset = getOffset(cp1e, cp2e)
-
+    shape_offset = getOffset(cp1, cp2, cp2e)
+    # shape_offset = getOffset(cp1e, cp2e)
 
 
     plt.figure()
     plotPoints(cp1 - shape_offset)
     plotPoints(cp2 - shape_offset)
-    plotPoints(cp1e - shape_offset, lbl="c1pe")
+    # plotPoints(cp1e - shape_offset, lbl="c1pe")
     plotPoints(cp2e - shape_offset, True, lbl="c2pe")
     exit()
     

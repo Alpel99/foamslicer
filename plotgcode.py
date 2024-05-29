@@ -66,4 +66,5 @@ def plotDynamic():
     plt.close()
     
 if __name__ == "__main__":
-    plotStatic()
+    # plotStatic()
+    plotDynamic()

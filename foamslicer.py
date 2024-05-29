@@ -1,51 +1,77 @@
-import meshio, datetime, itertools, click
+import meshio, datetime, itertools
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import CubicSpline, make_interp_spline
 from scipy.spatial import ConvexHull
-import config as text_config
+import foamconfig as foamconfig
 import main as helpers
 
 
-class foamslicer():
-    def __init__(self,):
-        self.config = {}
-        self.initConfig()
+class Foamslicer():
+    def __init__(self):
+        self.config = foamconfig.Foamconfig()
         self.alignidxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
 
+    def curveNormalization(self):
+        self.c1 = helpers.extendPoints(self.c1, self.config.hotwire_width)
+        self.c2 = helpers.extendPoints(self.c2, self.config.hotwire_width)
+
+    def writeGCode(self):
+        c = self.config
+        helpers.writeFile(self.cp1e, self.cp2e, c.offset, c.gcode_init)
+
+    def applyShapeOffset(self):
+        self.shape_offset = helpers.getOffset(self.cp1e, self.cp2e)
+        self.cp1e -= self.shape_offset
+        self.cp2e -= self.shape_offset
+        self.true_offset = -self.shape_offset + self.config.offset
+
+    def getExtendedPoints(self):
+        m1 = self.maxmin[0][self.config.dim_index]
+        m2 = self.maxmin[1][self.config.dim_index]
+        offset = self.config.hotwire_length - self.config.hotwire_offset
+        self.cp2e = helpers.getExtendedPoints(self.cp2, self.cp1, m1, m2, offset)
+        if(self.config.hotwire_offset > 0):
+            self.cp1e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, self.config.hotwire_offset)
+        else:
+            self.cp1e = self.cp1
+
+    def getPointsFromSplines(self):
+        c = self.config
+        self.cp1 = helpers.getPointsFromSplines(self.lensum1, self.splines1, c.num_points)
+        self.cp2 = helpers.getPointsFromSplines(self.lensum2, self.splines2, c.num_points)
+
+    def getSplines(self):
+        c = self.config
+        self.lensum1, self.splines1 = helpers.getSplines(self.c1, c.num_segments)
+        self.lensum2, self.splines2 = helpers.getSplines(self.c2, c.num_segments)
+
+    def getOrderedExtremePoints(self):
+        c = self.config
+        self.c1 = helpers.getOrderedExtremePoints(self.maxmin, self.points, 0, c.dim_index, c.x_eps)
+        self.c2 = helpers.getOrderedExtremePoints(self.maxmin, self.points, 1, c.dim_index, c.x_eps)
+
+    def getMeshMaxMin(self):
+        self.maxmin = helpers.getMeshMaxMin(self.points)
+
+    def shiftMesh(self):
+        self.points = helpers.shiftMesh(self.points)
+
+    def flipMesh(self):
+        c = self.config
+        dim_idx = self.config.dim_index
+        self.points = helpers.flipMesh(self.points, c.dim_flip_y, c.dim_flip_x, dim_idx)
+
     def alignMeshAxis(self):
-        self.getHull(self.points)
-        align_idx = self.alignidxs[self.config["trapz_idx"]]
+        self.hull = ConvexHull(self.points)
+        align_idx = self.alignidxs[self.config.trapz_index]
         hullpoints = self.points[self.hull.vertices][:, align_idx[0]]
         maxPoints = helpers.find_trapezoid_corners(hullpoints)
         parallelPair = helpers.find_parallel_pairs(maxPoints)
-        self.mesh = helpers.rotateMesh(self.points, parallelPair, align_idx[1])
-
-    def getHull(self):
-        self.hull = ConvexHull(self.points)
-        return self.hull
+        self.points = helpers.rotateMesh(self.points, parallelPair, align_idx[1], True)
 
     def getPoints(self):
         self.points = self.mesh.points
         return self.points
-
-    def initConfig(self):
-        c = self.config
-        c["input_file"] = text_config.INPUT_NAME
-        c["offset"] = text_config.OFFSET
-        c["num_points"] = text_config.NUM_POINTS
-        c["dim_index"] = text_config.DIM_INDEX
-        c["trapz_index"] = text_config.TRAPZ_IDX
-        c["dim_flip_x"] = text_config.DIM_FLIP_X
-        c["dim_flip_y"] = text_config.DIM_FLIP_Y
-        c["num_segments"] = text_config.NUM_SEGMENTS
-        c["output_name"] = text_config.OUTPUT_NAME
-        c["eps"] = text_config.EPS
-        c["parallel_eps"] = text_config.PARALLEL_EPS
-        c["x_eps"] = text_config.X_EPS
-        c["hotwire_length"] = text_config.HOTWIRE_LENGTH
-        c["hotwire_offset"] = text_config.HOTWIRE_OFFSET
-        c["gcode_init"] = text_config.GCODE_INIT
     
     def readSTL(self, path):
         self.mesh = meshio.read(path)
@@ -54,7 +80,7 @@ class foamslicer():
         pass
 
     def readFiles(self):
-        input = self.config["input_file"]
+        input = self.config.input_file
         arr_sw = False
         if(type(input) == str):
             end = input.split(".")[-1].lower()
@@ -74,12 +100,22 @@ class foamslicer():
                 self.readDXF(input[0], input[1])
                 return
         raise("No fitting file found, use stl, 1 dxf or 2 dxf")
-    
-
 
 
 if __name__ == "__main__":
-    slicer = foamslicer()
+    slicer = Foamslicer()
     slicer.readFiles()
     slicer.getPoints()
-    print(slicer.points)
+    slicer.alignMeshAxis()
+    slicer.flipMesh()
+    slicer.shiftMesh()
+    slicer.getMeshMaxMin()
+    slicer.getOrderedExtremePoints()
+    slicer.curveNormalization()
+    slicer.getSplines()
+    slicer.getPointsFromSplines()
+    slicer.getExtendedPoints()
+    slicer.applyShapeOffset()
+    helpers.plotPoints(slicer.cp1e)
+    helpers.plotPoints(slicer.cp2e, True)
+    slicer.writeGCode()

@@ -1,6 +1,6 @@
 OFFSET = [10,10]
 
-NUM_POINTS = 20
+NUM_POINTS = 100
 
 # which dim is linear
 DIM_INDEX = 1
@@ -13,11 +13,11 @@ DIM_FLIP_X = True
 DIM_FLIP_Y = False
 
 # number of segments number of different curves used for interpolation
-NUM_SEGMENTS = 4
+NUM_SEGMENTS = 40
 
 INPUT_NAME = "rear-wing-test-for-cnc-cutter.stl"
 # INPUT_NAME = "Allerion_NO_horn.stl"
-OUTPUT_NAME = "out.ngc"
+OUTPUT_NAME = "out_gui.ngc"
 
 # epsilon for points on same axis
 # EPS = 2.220446049250313e-16
@@ -33,7 +33,11 @@ X_EPS = 0.1
 HOTWIRE_LENGTH = 300
 
 # Offset from 0 point (motor movement plane) (mm)
-HOTWIRE_OFFSET = 50
+HOTWIRE_OFFSET = 0
+
+# Wire width
+HOTWIRE_WIDTH = 1.2
+
 
 GCODE_INIT = '''G17
 G21

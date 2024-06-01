@@ -1,14 +1,13 @@
-import meshio, datetime, itertools
-import numpy as np
+import meshio
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
-import slicerconfig as foamconfig
+import slicerconfig as slicerconfig
 import main as helpers
 
 
 class Foamslicer():
     def __init__(self):
-        self.config = foamconfig.Foamconfig()
+        self.config = slicerconfig.Foamconfig()
         self.alignidxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
 
     def curveNormalization(self):
@@ -17,7 +16,8 @@ class Foamslicer():
 
     def writeGCode(self):
         c = self.config
-        helpers.writeFile(self.cp1e, self.cp2e, c.offset, c.gcode_init)
+        res = helpers.writeFile(self.cp1e, self.cp2e, c.offset, c.gcode_init)
+        return res
 
     def applyShapeOffset(self):
         self.shape_offset = helpers.getOffset(self.cp1e, self.cp2e)
@@ -59,7 +59,8 @@ class Foamslicer():
     def flipMesh(self):
         c = self.config
         dim_idx = self.config.dim_index
-        self.points = helpers.flipMesh(self.points, c.dim_flip_y, c.dim_flip_x, dim_idx)
+        flips = [c.dim_flip_x, c.dim_flip_y, c.dim_flip_z]
+        self.points = helpers.flipMesh(self.points, flips, dim_idx)
 
     def alignMeshAxis(self):
         self.hull = ConvexHull(self.points)
@@ -105,7 +106,13 @@ class Foamslicer():
 if __name__ == "__main__":
     slicer = Foamslicer()
     slicer.readFiles()
-    slicer.getPoints()
+    points = slicer.getPoints()
+    # print(points)
+    # helpers.create3dplot(points)
+    # slicer.flipMesh()
+    # slicer.alignMeshAxis()
+    # helpers.create3dplot(slicer.points)
+    # exit()
     slicer.alignMeshAxis()
     slicer.flipMesh()
     slicer.shiftMesh()

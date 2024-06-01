@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline, make_interp_spline, UnivariateSpline
 from scipy.spatial import ConvexHull
-from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, HOTWIRE_OFFSET, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX, X_EPS, HOTWIRE_WIDTH
+from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, HOTWIRE_OFFSET, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX, X_EPS, HOTWIRE_WIDTH, DIM_FLIP_Z
 
 np.set_printoptions(suppress=True)
 
@@ -199,6 +199,7 @@ def writeFile(c1p, c2p, offset, gcode_init):
     file1.write(("( SHAPE )\n"))
     writeG1Lines(file1, c1p + offset, c2p + offset)
     reverseOffsetMvt(file1, c1p[0], c2p[0], offset)
+    return True
 
 
 def rotation_matrix(axis, angle):
@@ -286,20 +287,10 @@ def find_parallel_pairs(points):
         raise Exception("No parallel pairs in trapezoid view found, is the shape off?")
 
 
-def flipMesh(mesh, flipy, flipx, dim_idx):
-    flips = [flipy, flipx]
-    fliplist = []
-    idx = 0
-    for i in range(3):
-        if i != dim_idx:
-            fliplist.append(flips[idx])
-            idx += 1
-        else:
-            fliplist.append(False)
+def flipMesh(mesh, flips, dim_idx = None):
     flipped_mesh = mesh.copy()
-    for i,f in enumerate(fliplist):
-        # print(i,f)
-        if f:
+    for i,f in enumerate(flips):
+        if f and i is not dim_idx:
             flipped_mesh[:, i] = -flipped_mesh[:, i]
     return flipped_mesh
 
@@ -400,6 +391,13 @@ def extendPoints(points, wire_width):
     res = np.insert(res, xmin, new_point, axis=0)
     return res
 
+def create3dplot(points):
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+
+    ax.scatter(points[:, 0], points[:, 1], points[:, 2])
+    ax.set_aspect('equal', adjustable='box')
+    plt.show()
 
 if __name__ == "__main__":
     mesh = meshio.read(INPUT_NAME)
@@ -422,7 +420,7 @@ if __name__ == "__main__":
     # plotPoints(rotated_mesh[:, indxs[0][0]], True)
     # plotPoints(rotated_mesh[:, indxs[1][0]], True)
     # plotPoints(rotated_mesh[:, indxs[2][0]], True)
-    flipped_mesh = flipMesh(rotated_mesh, DIM_FLIP_Y, DIM_FLIP_X, DIM_INDEX)
+    flipped_mesh = flipMesh(rotated_mesh, [DIM_FLIP_X, DIM_FLIP_Y, DIM_FLIP_Z], DIM_INDEX)
     shifted_mesh = shiftMesh(flipped_mesh)
     maxmin = getMeshMaxMin(shifted_mesh)
     # np.savetxt("mesh.txt", shifted_mesh, fmt="%f")

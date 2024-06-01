@@ -12,6 +12,7 @@ class Foamconfig():
         self.trapz_index = text_config.TRAPZ_IDX
         self.dim_flip_x = text_config.DIM_FLIP_X
         self.dim_flip_y = text_config.DIM_FLIP_Y
+        self.dim_flip_z = text_config.DIM_FLIP_Z
         self.num_segments = text_config.NUM_SEGMENTS
         self.output_name = text_config.OUTPUT_NAME
         self.eps = text_config.EPS
@@ -24,3 +25,7 @@ class Foamconfig():
 
     def reset(self):
         self.getConfig()
+
+    def writeConfig(self):
+        print("Missing impl, setup writing of file")
+        pass

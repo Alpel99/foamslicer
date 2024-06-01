@@ -9,8 +9,9 @@ DIM_INDEX = 1
 TRAPZ_IDX = 0
 
 # needs to flip xy dir? - doesnt change a thing? -> have to *-1 the y values
-DIM_FLIP_X = True
+DIM_FLIP_X = False
 DIM_FLIP_Y = False
+DIM_FLIP_Z = True
 
 # number of segments number of different curves used for interpolation
 NUM_SEGMENTS = 40

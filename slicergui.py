@@ -29,48 +29,63 @@ class MainApplication(tk.Frame):
             self.getFiles()
 
         self.setupToolbar()
-        self.slicer.readFiles()
         self.setupPlot()
-        self.initData()
+
+        if self.slicer.config.input_file:
+            self.slicer.readFiles()
+            self.initData()
 
     def setupToolbar(self):
-        tk.Button(self.tool_bar, text="Init Data", command=self.initData).grid(columnspan=3, sticky="nsew")
-        tk.Button(self.tool_bar, text="Empty Plot", command=self.resetPlot).grid(columnspan=3, sticky="nsew")
+        tk.Button(self.tool_bar, text="Init Data", command=self.initData).grid(row=1, columnspan=3, sticky="nsew")
+        tk.Button(self.tool_bar, text="Empty Plot", command=self.resetPlot).grid(row=2, columnspan=3, sticky="nsew")
 
 
         label = tk.Label(self.tool_bar, text="Axis selection:")
-        label.grid(column=0, columnspan=3, sticky="nsew")
+        label.grid(row=3, column=0, columnspan=3, sticky="nsew")
         self.axis = tk.IntVar(value=0)
-        self.radio1 = tk.Radiobutton(self.tool_bar, text="X", variable=self.axis, value=0).grid(row=2, column=0, sticky="nsew")
-        self.radio2 = tk.Radiobutton(self.tool_bar, text="Y", variable=self.axis, value=1).grid(row=2, column=1, sticky="nsew")
-        self.radio3 = tk.Radiobutton(self.tool_bar, text="Z", variable=self.axis, value=2).grid(row=2, column=2, sticky="nsew")
+        self.radio1 = tk.Radiobutton(self.tool_bar, text="X", variable=self.axis, value=0).grid(row=4, column=0, sticky="nsew")
+        self.radio2 = tk.Radiobutton(self.tool_bar, text="Y", variable=self.axis, value=1).grid(row=4, column=1, sticky="nsew")
+        self.radio3 = tk.Radiobutton(self.tool_bar, text="Z", variable=self.axis, value=2).grid(row=4, column=2, sticky="nsew")
 
-        tk.Button(self.tool_bar, text="Rotate Mesh", command=self.rotateMesh).grid(columnspan=3, sticky="nsew")
+        tk.Button(self.tool_bar, text="Rotate Mesh", command=self.rotateMesh).grid(row=5, columnspan=3, sticky="nsew")
         # tk.Button(self.tool_bar, text="Align Min", command=self.alignMin).grid(row=3, column=0, sticky="nsew")
         # tk.Button(self.tool_bar, text="Align Mid", command=self.alignMid).grid(row=3, column=1, sticky="nsew")
         # tk.Button(self.tool_bar, text="Align Max", command=self.alignMax).grid(row=3, column=2, sticky="nsew")
 
-        tk.Button(self.tool_bar, text="Flip Mesh", command=self.flipMesh).grid(columnspan=3, sticky="nsew")
+        tk.Button(self.tool_bar, text="Flip Mesh", command=self.flipMesh).grid(row=6, columnspan=3, sticky="nsew")
         
-        tk.Button(self.tool_bar, text="Extreme Points", command=self.extremePoints).grid(columnspan=3, sticky="nsew")
+        tk.Button(self.tool_bar, text="Extreme Points", command=self.extremePoints).grid(row=7, columnspan=3, sticky="nsew")
 
         self.cpad = tk.Button(self.tool_bar, text="Curve Padding", command=self.curvePadding, state="disabled")
-        self.cpad.grid(columnspan=3, sticky="nsew")
-        # need padding value in gui
+        self.cpad.grid(row=8, columnspan=3, sticky="nsew")
+        # tk.Label(self.tool_bar, text="Padding Size").grid(row=9, column=0)
+        # self.paddingSize = tk.Entry(self.tool_bar)
+        # self.paddingSize.grid(row=9, column=1)
+        # self.paddingSize.insert(tk.END, self.slicer.config.hotwire_width)
 
+        tk.Label(self.tool_bar, text="Num Points").grid(row=9, column=0)
+        self.numPoints = tk.Entry(self.tool_bar)
+        self.numPoints.grid(row=9, column=1)
+        self.numPoints.insert(tk.END, self.slicer.config.num_points)
+        tk.Label(self.tool_bar, text="Num Splines").grid(row=10, column=0)
+        self.numSegments = tk.Entry(self.tool_bar)
+        self.numSegments.grid(row=10, column=1)
+        self.numSegments.insert(tk.END, self.slicer.config.num_segments)
         self.evpoints = tk.Button(self.tool_bar, text="Even Points", command=self.evenPoints, state="disabled")
         self.evpoints.grid(columnspan=3, sticky="nsew")
+        
 
         self.extpoints = tk.Button(self.tool_bar, text="Extend Points", command=self.extendPoints, state="disabled")
         self.extpoints.grid(columnspan=3, sticky="nsew")
 
         self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="disabled")
         self.gengcode.grid(columnspan=3, sticky="nsew")
+
         tk.Button(self.tool_bar, text="Open New", command=self.getFiles).grid(columnspan=3, sticky="nsew")
 
         # Apply padding to all widgets in the toolbar
         for child in self.tool_bar.winfo_children():
-            child.grid_configure(pady=3)
+            child.grid_configure(pady=3, padx=3)
 
     def generateGcode(self):
         try:
@@ -91,6 +106,10 @@ class MainApplication(tk.Frame):
 
 
     def evenPoints(self):
+        nsegs = int(self.numSegments.get()) if self.numSegments.get() else self.slicer.config.num_segments
+        self.slicer.config.num_segments = nsegs
+        npts = int(self.numPoints.get()) if self.numPoints.get() else self.slicer.config.num_points
+        self.slicer.config.num_points = npts
         self.slicer.getSplines()
         self.slicer.getPointsFromSplines()
         if self.slicer.cp1 is not None and self.slicer.cp2 is not None:
@@ -99,6 +118,8 @@ class MainApplication(tk.Frame):
         self.plot2d(self.slicer.cp2)
     
     def curvePadding(self):
+        # hww = float(self.paddingSize.get()) if self.paddingSize.get() else self.slicer.config.hotwire_width
+        # self.slicer.config.hotwire_width = hww
         self.slicer.curveNormalization()
         self.plot2d(self.slicer.c1)
         self.plot2d(self.slicer.c2)
@@ -190,7 +211,10 @@ class MainApplication(tk.Frame):
 
     def getFiles(self):
             files = tk.filedialog.askopenfilenames(parent=self.parent, title='Choose files (stl or dxf)')
-            self.slicer.config.input_file = list(files)
+            if files is not None:
+                self.slicer.config.input_file = list(files)
+            else:
+                raise("No file selected")
 
     def plot(self, *args):
         plt.plot(args)

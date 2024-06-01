@@ -18,7 +18,7 @@ NUM_SEGMENTS = 40
 
 INPUT_NAME = "rear-wing-test-for-cnc-cutter.stl"
 # INPUT_NAME = "Allerion_NO_horn.stl"
-OUTPUT_NAME = "out_gui.ngc"
+OUTPUT_NAME = "out.ngc"
 
 # epsilon for points on same axis
 # EPS = 2.220446049250313e-16

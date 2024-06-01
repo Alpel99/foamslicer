@@ -14,8 +14,10 @@ class Foamslicer():
         self.points = helpers.alignMesh(self.points, self.config.dim_index, self.config.mode)
 
     def curveNormalization(self):
-        self.c1 = helpers.extendPoints(self.c1, self.config.hotwire_width)
-        self.c2 = helpers.extendPoints(self.c2, self.config.hotwire_width)
+        self.c1old = self.c1
+        self.c2old = self.c2
+        self.c1 = helpers.extendPoints(self.c1old, self.config.hotwire_width)
+        self.c2 = helpers.extendPoints(self.c2old, self.config.hotwire_width)
 
     def writeGCode(self):
         c = self.config

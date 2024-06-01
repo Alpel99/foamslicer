@@ -10,6 +10,9 @@ class Foamslicer():
         self.config = slicerconfig.Foamconfig()
         self.alignidxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
 
+    def alignMesh(self):
+        self.points = helpers.alignMesh(self.points, self.config.dim_index, self.config.mode)
+
     def curveNormalization(self):
         self.c1 = helpers.extendPoints(self.c1, self.config.hotwire_width)
         self.c2 = helpers.extendPoints(self.c2, self.config.hotwire_width)

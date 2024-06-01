@@ -25,7 +25,7 @@ class MainApplication(tk.Frame):
                 
         self.parent.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.slicer = Foamslicer()
-        if self.slicer.config.input_file == "":
+        if not self.slicer.config.input_file:
             self.getFiles()
 
         self.setupToolbar()
@@ -37,6 +37,7 @@ class MainApplication(tk.Frame):
         tk.Button(self.tool_bar, text="Init Data", command=self.initData).grid(columnspan=3, sticky="nsew")
         tk.Button(self.tool_bar, text="Empty Plot", command=self.resetPlot).grid(columnspan=3, sticky="nsew")
 
+
         label = tk.Label(self.tool_bar, text="Axis selection:")
         label.grid(column=0, columnspan=3, sticky="nsew")
         self.axis = tk.IntVar(value=0)
@@ -45,19 +46,26 @@ class MainApplication(tk.Frame):
         self.radio3 = tk.Radiobutton(self.tool_bar, text="Z", variable=self.axis, value=2).grid(row=2, column=2, sticky="nsew")
 
         tk.Button(self.tool_bar, text="Rotate Mesh", command=self.rotateMesh).grid(columnspan=3, sticky="nsew")
+        # tk.Button(self.tool_bar, text="Align Min", command=self.alignMin).grid(row=3, column=0, sticky="nsew")
+        # tk.Button(self.tool_bar, text="Align Mid", command=self.alignMid).grid(row=3, column=1, sticky="nsew")
+        # tk.Button(self.tool_bar, text="Align Max", command=self.alignMax).grid(row=3, column=2, sticky="nsew")
 
         tk.Button(self.tool_bar, text="Flip Mesh", command=self.flipMesh).grid(columnspan=3, sticky="nsew")
         
         tk.Button(self.tool_bar, text="Extreme Points", command=self.extremePoints).grid(columnspan=3, sticky="nsew")
 
-        tk.Button(self.tool_bar, text="Curve Padding", command=self.curvePadding).grid(columnspan=3, sticky="nsew")
+        self.cpad = tk.Button(self.tool_bar, text="Curve Padding", command=self.curvePadding, state="disabled")
+        self.cpad.grid(columnspan=3, sticky="nsew")
         # need padding value in gui
 
-        tk.Button(self.tool_bar, text="Even Points", command=self.evenPoints).grid(columnspan=3, sticky="nsew")
+        self.evpoints = tk.Button(self.tool_bar, text="Even Points", command=self.evenPoints, state="disabled")
+        self.evpoints.grid(columnspan=3, sticky="nsew")
 
-        tk.Button(self.tool_bar, text="Extend Points", command=self.extendPoints).grid(columnspan=3, sticky="nsew")
+        self.extpoints = tk.Button(self.tool_bar, text="Extend Points", command=self.extendPoints, state="disabled")
+        self.extpoints.grid(columnspan=3, sticky="nsew")
 
-        tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode).grid(columnspan=3, sticky="nsew")
+        self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="disabled")
+        self.gengcode.grid(columnspan=3, sticky="nsew")
         tk.Button(self.tool_bar, text="Open New", command=self.getFiles).grid(columnspan=3, sticky="nsew")
 
         # Apply padding to all widgets in the toolbar
@@ -76,6 +84,8 @@ class MainApplication(tk.Frame):
     def extendPoints(self):
         self.slicer.getExtendedPoints()
         self.slicer.applyShapeOffset()
+        if self.slicer.cp1e is not None and self.slicer.cp2e is not None:
+            self.gengcode.config(state="normal")
         self.plot2d(self.slicer.cp1e)
         self.plot2d(self.slicer.cp2e)
 
@@ -83,6 +93,8 @@ class MainApplication(tk.Frame):
     def evenPoints(self):
         self.slicer.getSplines()
         self.slicer.getPointsFromSplines()
+        if self.slicer.cp1 is not None and self.slicer.cp2 is not None:
+            self.extpoints.config(state="normal")
         self.plot2d(self.slicer.cp1)
         self.plot2d(self.slicer.cp2)
     
@@ -100,6 +112,9 @@ class MainApplication(tk.Frame):
         self.slicer.config.dim_index = self.axis.get()
         self.slicer.getMeshMaxMin()
         self.slicer.getOrderedExtremePoints()
+        if self.slicer.c1 is not None and self.slicer.c2 is not None:
+            self.evpoints.config(state="normal")
+            self.cpad.config(state="normal")
         self.plot2d(self.slicer.c1)
         self.plot2d(self.slicer.c2)
 
@@ -111,12 +126,31 @@ class MainApplication(tk.Frame):
         self.slicer.flipMesh()
         self.plot3d()
 
+    def alignMin(self):
+        self.slicer.config.dim_index = self.axis.get()
+        self.slicer.config.mode = 0
+        self.slicer.alignMesh()
+        self.plot3d()
+
+    def alignMax(self):
+        self.slicer.config.dim_index = self.axis.get()
+        self.slicer.config.mode = 1
+        self.slicer.alignMesh()
+        self.plot3d()
+
+    def alignMid(self):
+        self.slicer.config.dim_index = self.axis.get()
+        self.slicer.config.mode = 2
+        self.slicer.alignMesh()
+        self.plot3d()
+
     def rotateMesh(self):
         self.slicer.config.trapz_index = self.axis.get()
         self.slicer.alignMeshAxis()
         self.plot3d()
 
     def plot3d(self):
+        self.slicer.shiftMesh()
         if '2d' in self.ax.name:
             self.resetPlot()
         self.ax.remove()
@@ -124,6 +158,10 @@ class MainApplication(tk.Frame):
         points = self.slicer.points
         self.ax.scatter(points[:, 0], points[:, 1], points[:, 2])
         self.ax.set_aspect('equal', adjustable='box')
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlabel('Z')
+        # self.ax.view_init(0,0)
         self.figure.canvas.draw()
 
     def resetPlot(self):

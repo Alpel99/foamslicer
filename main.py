@@ -226,10 +226,10 @@ def rotation_matrix(axis, angle):
     
     return rotation_matrix
 
-def rotateMesh(points, parallelLinePoints, axis, pos):
-    p1, p2 = parallelLinePoints[0]
+def rotateMesh(points, parallelLinePoints, axis, mode):
+    p1, p2 = parallelLinePoints[mode]
     slope = (p2[1] - p1[1])/(p2[0]-p1[0])
-    rotation_angle = -np.arctan(slope) if not pos else np.arctan(slope)
+    rotation_angle = np.arctan(slope)
     # print("rotation_angle (radians)", rotation_angle)
     
     rotation_axis = np.zeros((3,))
@@ -288,11 +288,10 @@ def find_parallel_pairs(points):
 
 
 def flipMesh(mesh, flips, dim_idx = None):
-    flipped_mesh = mesh.copy()
     for i,f in enumerate(flips):
         if f and i is not dim_idx:
-            flipped_mesh[:, i] = -flipped_mesh[:, i]
-    return flipped_mesh
+            mesh[:, i] = -mesh[:, i]
+    return mesh
 
 def getSplines(points, nsegments):
     xmax = np.argmax(points[:, 0])
@@ -399,11 +398,76 @@ def create3dplot(points):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
+def getAlignPoints(points, idx):
+    p1 = np.argmin(points[:, idx])
+    print(points[p1])
+
+def alignMesh(points, axis, mode):
+    hull = ConvexHull(points)
+    indxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
+    hullpoints = points[hull.vertices][:, indxs[axis][0]]
+    maxPoints = find_trapezoid_corners(hullpoints)
+    print(maxPoints)
+    
+    if mode == 0:
+        p1 = maxPoints[0]
+        p2 = maxPoints[1]
+    if mode == 1:
+        p1 = maxPoints[1]
+        p2 = maxPoints[3]
+    if mode == 2:
+        p1 = (maxPoints[0]+maxPoints[1])/2
+        p2 = (maxPoints[2]+maxPoints[3])/2
+
+    k = 0
+    refp = np.zeros((3,))
+    for i in range(3):
+        if i != axis:
+            refp[i] = p1[k]
+            k += 1
+        else:
+            refp[i] = 0
+
+    print(refp)
+
+    points = points-refp
+    
+    slope = (p2[1] - p1[1])/(p2[0]-p1[0])
+    rotation_angle = np.arctan(slope)
+    # print("rotation_angle (radians)", rotation_angle)
+    
+    rotation_axis = np.zeros((3,))
+    rotation_axis[axis] = 1
+    
+    rot_mat = rotation_matrix(rotation_axis, rotation_angle)
+    # print(rot_mat)
+    rotated_mesh = np.dot(points, rot_mat) + refp
+    
+    
+    hull = ConvexHull(rotated_mesh)
+    indxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
+    hullpoints = rotated_mesh[hull.vertices][:, indxs[axis][0]]
+    maxPoints = find_trapezoid_corners(hullpoints)
+    print(maxPoints)
+
+    return rotated_mesh
+
+
+
+
+
 if __name__ == "__main__":
     mesh = meshio.read(INPUT_NAME)
     
     # only work with points as mesh
     points = mesh.points
+    
+    
+    points = shiftMesh(points)
+    # getAlignPoints(points, 0)
+    alignMesh(points, 0, 0)
+
+    exit()
     hull = ConvexHull(points)
     indxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
     hullpoints = points[hull.vertices][:, indxs[TRAPZ_IDX][0]]

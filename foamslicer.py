@@ -2,7 +2,7 @@ import meshio, datetime, itertools
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
-import foamconfig as foamconfig
+import slicerconfig as foamconfig
 import main as helpers
 
 

@@ -1,6 +1,8 @@
 # foamslicer
 gcode generator from stl or dxf files for airfoils (or other convex shapes)
 
+![screenshot](https://i.ibb.co/sRXWZrp/Screenshot-from-2024-06-04-13-53-31.png)
+
 # ideas/todo
 * rotations could be done differently:
     * take min/max/middle axis of dim

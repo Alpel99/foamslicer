@@ -28,7 +28,7 @@ class MainApplication(tk.Frame):
         if not self.slicer.config.input_file:
             self.getFiles()
 
-        self.setupToolbar()
+        # self.setupToolbar()
         self.setupPlot()
 
         if self.slicer.config.input_file:
@@ -36,6 +36,9 @@ class MainApplication(tk.Frame):
             self.initData()
 
     def setupToolbar(self):
+        for child in self.tool_bar.winfo_children():
+            child.destroy()
+           
         tk.Button(self.tool_bar, text="Init Data", command=self.initData).grid(row=1, columnspan=3, sticky="nsew")
         tk.Button(self.tool_bar, text="Empty Plot", command=self.resetPlot).grid(row=2, columnspan=3, sticky="nsew")
 
@@ -74,7 +77,11 @@ class MainApplication(tk.Frame):
         self.evpoints = tk.Button(self.tool_bar, text="Even Points", command=self.evenPoints, state="disabled")
         self.evpoints.grid(columnspan=3, sticky="nsew")
         
-
+        if(self.slicer.dxf):
+            tk.Label(self.tool_bar, text="Workpiece Size").grid(row=12, column=0)
+            self.workPSize = tk.Entry(self.tool_bar)
+            self.workPSize.grid(row=12, column=1)
+            self.workPSize.insert(tk.END, self.slicer.config.workpiece_size)
         self.extpoints = tk.Button(self.tool_bar, text="Extend Points", command=self.extendPoints, state="disabled")
         self.extpoints.grid(columnspan=3, sticky="nsew")
 
@@ -125,8 +132,15 @@ class MainApplication(tk.Frame):
         self.plot2d(self.slicer.c2)
 
     def initData(self):
-        self.slicer.getPoints()
-        self.plot3d()
+        self.setupToolbar()
+        if self.slicer.dxf:
+            self.plot2d(self.slicer.c1)
+            self.plot2d(self.slicer.c2)
+            self.evpoints.config(state="normal")
+            self.cpad.config(state="normal")
+        else:
+            self.slicer.getPoints()
+            self.plot3d()
 
     def extremePoints(self):
         self.slicer.shiftMesh()
@@ -166,7 +180,7 @@ class MainApplication(tk.Frame):
         self.plot3d()
 
     def rotateMesh(self):
-        self.slicer.config.trapz_index = self.axis.get()
+        self.slicer.config.trapz_idx = self.axis.get()
         self.slicer.alignMeshAxis()
         self.plot3d()
 
@@ -215,6 +229,8 @@ class MainApplication(tk.Frame):
                 self.slicer.config.input_file = list(files)
             else:
                 raise("No file selected")
+            self.slicer.readFiles()
+            self.initData()
 
     def plot(self, *args):
         plt.plot(args)

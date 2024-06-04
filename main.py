@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline, make_interp_spline, UnivariateSpline
 from scipy.spatial import ConvexHull
-from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, HOTWIRE_OFFSET, GCODE_INIT, INPUT_NAME, EPS, PARALLEL_EPS, TRAPZ_IDX, X_EPS, HOTWIRE_WIDTH, DIM_FLIP_Z
+from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, HOTWIRE_OFFSET, GCODE_INIT, INPUT_FILE, EPS, PARALLEL_EPS, TRAPZ_IDX, X_EPS, HOTWIRE_WIDTH, DIM_FLIP_Z, GCODE_AXIS, GCODE_G1
 
 np.set_printoptions(suppress=True)
 
@@ -116,27 +116,28 @@ def getExtendedPoints(p1, p2, p1x, p2x, len):
 def writeGcodeInit(file, gcode_init):
     file.write(gcode_init)
     
-def writeG1Lines(file, points1, points2):
+def writeG1Lines(file, points1, points2, gcode_axis, g1):
     for p1, p2 in zip(points1, points2):
         X = round(p1[0], 2)
         Y = round(p1[1], 2)
-        U = round(p2[0], 2)
-        V = round(p2[1], 2)
-        file.write("G1 X%.2f Y%.2f A%.2f Z%.2f\n" % (X, Y, U, V))
+        A = round(p2[0], 2)
+        Z = round(p2[1], 2)
+        v0, v1, v2, v3 = gcode_axis
+        file.write("G%i %c%.2f %c%.2f %c%.2f %c%.2f\n" % (g1, v0, X, v1, Y, v2, A, v3, Z))
         
-def writeOffsetMvt(file, c1o, c2o, offset):
+def writeOffsetMvt(file, c1o, c2o, offset, gcode_axis, g1):
     file.write(("( OFFSET )\n"))
-    writeG1Lines(file, [offset], [offset])
+    writeG1Lines(file, [offset], [offset], gcode_axis, g1)
     file.write(("( OFFSET + SHAPE OFFSET )\n"))
-    writeG1Lines(file, [offset+c1o], [offset+c2o])
+    writeG1Lines(file, [offset+c1o], [offset+c2o], gcode_axis, g1)
     
-def reverseOffsetMvt(file, c1o, c2o, offset):
+def reverseOffsetMvt(file, c1o, c2o, offset,gcode_axis, g1):
     file.write(("( BACK TO INIT POS )\n"))
-    writeG1Lines(file, [offset + c1o], [offset+c2o])
+    writeG1Lines(file, [offset + c1o], [offset+c2o], gcode_axis, g1)
     file.write(("( REVERSE SHAPE OFFSET )\n"))
-    writeG1Lines(file, [offset], [offset])
+    writeG1Lines(file, [offset], [offset], gcode_axis, g1)
     file.write(("( REVERSE OFFSET / GO TO ZERO )\n"))
-    writeG1Lines(file, [[0,0]], [[0,0]])     
+    writeG1Lines(file, [[0,0]], [[0,0]], gcode_axis, g1)
     
 def shiftMesh(mesh):
     minv = np.min(mesh, axis=0)
@@ -189,16 +190,16 @@ def getSegments(c1, c2):
     segment_indices = np.linspace(0, l, num_segments + 1, dtype=int)
     return num_segments, segment_indices
 
-def writeFile(c1p, c2p, offset, gcode_init):
+def writeFile(c1p, c2p, offset, gcode_init, gcode_axis, g1):
     file1 = open(OUTPUT_NAME, "w")
     file1.write(f"( foamslicer.py, at {datetime.datetime.now()} )\n")
     file1.close()
     file1 = open(OUTPUT_NAME, "a")
     writeGcodeInit(file1, gcode_init)
-    writeOffsetMvt(file1, c1p[0], c2p[0], offset)
+    writeOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, g1)
     file1.write(("( SHAPE )\n"))
-    writeG1Lines(file1, c1p + offset, c2p + offset)
-    reverseOffsetMvt(file1, c1p[0], c2p[0], offset)
+    writeG1Lines(file1, c1p + offset, c2p + offset, gcode_axis, g1)
+    reverseOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, g1)
     return True
 
 
@@ -398,6 +399,31 @@ def create3dplot(points):
     ax.set_aspect('equal', adjustable='box')
     plt.show()
 
+def readDXF(doc, dist, segments):
+    msp = doc.modelspace()
+    points = []
+    for e in msp:
+        if e.dxftype() == "LINE":
+            points.append(e.dxf.start)
+            points.append(e.dxf.end)
+        elif e.dxftype() == "POLYLINE":
+            # parts of polyline could be arc aswell?
+            for v in e.dxf.points():
+                points.append(v)
+        elif e.dxftype() == "SPLINE":
+            for p in e.flattening(dist, segments):
+                points.append(p)
+        # elif e.dxftype() == "ARC":
+        #     print("blyaat")
+        #     c = e.dxf.center
+        #     r = e.dxf.radius
+        #     a1 = e.dxf.start_angle
+        #     a2 = e.dxf.end_angle
+        #     # maybe! e.dxf.flattening() works
+    else:
+        print(f"ERROR: dxftype {e.dxftype()} not recognized")
+    return np.array(points)[:, :2]
+
 def getAlignPoints(points, idx):
     p1 = np.argmin(points[:, idx])
     print(points[p1])
@@ -457,7 +483,7 @@ def alignMesh(points, axis, mode):
 
 
 if __name__ == "__main__":
-    mesh = meshio.read(INPUT_NAME)
+    mesh = meshio.read(INPUT_FILE)
     
     # only work with points as mesh
     points = mesh.points
@@ -532,7 +558,7 @@ if __name__ == "__main__":
 
     true_offset = -shape_offset + OFFSET
 
-    writeFile(cp1 - shape_offset, cp2e - shape_offset, OFFSET, GCODE_INIT)
+    writeFile(cp1 - shape_offset, cp2e - shape_offset, OFFSET, GCODE_INIT, GCODE_AXIS, GCODE_G1)
 
 
     exit()

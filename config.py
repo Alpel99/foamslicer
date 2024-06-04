@@ -1,3 +1,4 @@
+# constant xy offset from 0,0
 OFFSET = [10,10]
 
 NUM_POINTS = 100
@@ -16,8 +17,9 @@ DIM_FLIP_Z = True
 # number of segments number of different curves used for interpolation
 NUM_SEGMENTS = 40
 
-INPUT_NAME = "rear-wing-test-for-cnc-cutter.stl"
-# INPUT_NAME = "Allerion_NO_horn.stl"
+INPUT_FILE = ["files/wing-left-part4-V1_inside.DXF", "files/wing-left-part4-V1_outside.DXF"]
+# INPUT_FILE = "files/rear-wing-test-for-cnc-cutter.stl"
+# INPUT_FILE = "Allerion_NO_horn.stl"
 OUTPUT_NAME = "out.ngc"
 
 # epsilon for points on same axis
@@ -39,6 +41,9 @@ HOTWIRE_OFFSET = 0
 # Wire width
 HOTWIRE_WIDTH = 1.2
 
+# size of piece between dxf curves
+WORKPIECE_SIZE = 1500
+
 
 GCODE_INIT = '''G17
 G21
@@ -54,3 +59,8 @@ G64
 G94
 F300
 '''
+
+GCODE_AXIS = ["X", "Y", "Z", "A"]
+
+# Write G1 instead of G0
+GCODE_G1 = False

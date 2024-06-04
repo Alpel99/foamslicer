@@ -1,34 +1,20 @@
 import numpy as np
+from config import NUM_SEGMENTS, NUM_POINTS
 import ezdxf
 
-def print_entity(e):
-    print("LINE on layer: %s" % e.dxf.layer)
-    print("start point: %s" % e.dxf.start)
-    print("end point: %s" % e.dxf.end)
+from main import readDXF, plotPoints
 
-doc = ezdxf.readfile("diamond.dxf")
-msp = doc.modelspace()
 
-# points = np.empty()
-points = []
-for e in msp:
-    if e.dxftype() == "LINE":
-        points.append(e.dxf.start)
-        points.append(e.dxf.end)
-    if e.dxftype() == "POLYLINE":
-        # parts of polyline could be arc aswell?
-        for v in e.dxf.points():
-            points.append(v)
-    if e.dxftype() == "ARC":
-        print("blyaat")
-        c = e.dxf.center
-        r = e.dxf.radius
-        a1 = e.dxf.start_angle
-        a2 = e.dxf.end_angle
-        # maybe! e.dxf.flattening() works
+dist = 0.05
+segments = 4
 
-points = np.array(points)
-print(points)
+d1 = ezdxf.readfile("files/wing-left-part4-V1_inside.DXF")
+d2 = ezdxf.readfile("files/wing-left-part4-V1_outside.DXF")
+p1 = readDXF(d1, dist, segments)
+p2 = readDXF(d2, dist, segments)
+# print(points)
 
-from main import create3dplot
-create3dplot(points)
+# print(p1, p2)
+# create3dplot(p1)
+plotPoints(p1)
+plotPoints(p2, True)

@@ -5,11 +5,11 @@ class Foamconfig():
         self.getConfig()
 
     def getConfig(self):
-        self.input_file = text_config.INPUT_NAME
+        self.input_file = text_config.INPUT_FILE
         self.offset = text_config.OFFSET
         self.num_points = text_config.NUM_POINTS
         self.dim_index = text_config.DIM_INDEX
-        self.trapz_index = text_config.TRAPZ_IDX
+        self.trapz_idx = text_config.TRAPZ_IDX
         self.dim_flip_x = text_config.DIM_FLIP_X
         self.dim_flip_y = text_config.DIM_FLIP_Y
         self.dim_flip_z = text_config.DIM_FLIP_Z
@@ -22,6 +22,9 @@ class Foamconfig():
         self.hotwire_offset = text_config.HOTWIRE_OFFSET
         self.hotwire_width = text_config.HOTWIRE_WIDTH
         self.gcode_init = text_config.GCODE_INIT
+        self.workpiece_size = text_config.WORKPIECE_SIZE
+        self.gcode_axis = text_config.GCODE_AXIS
+        self.gcode_g1 = text_config.GCODE_G1
 
     def reset(self):
         self.getConfig()

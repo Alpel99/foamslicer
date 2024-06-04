@@ -16,7 +16,7 @@ else:
 file = open(name, "r")
 
 for line in file:
-    if line[0:2] == "G1":
+    if line[0:2] == "G1" or line[0:2] == "G0":
         d = line.split()
         if(len(d) == 5):
             arr = np.empty((4,), dtype=float)

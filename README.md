@@ -6,11 +6,13 @@ gcode generator from stl or dxf files for airfoils (or other convex shapes)
 # ideas/todo
 * rotations could be done differently:
     * take min/max/middle axis of dim
-    * rotate this to align with axis
+    * rotate this to align with axis [this works kind of decently rn]
     * problem with middle -> how to find, need to be already orth on 1 axis
 * probably lots of bugs still
 * catch more errors?
 * ordered points from dxf did not work
+* checkHotwireDim does exist, should be used
+    * is by far not correct, e.g. no dxf
 
 
 ## todo Documentation
@@ -48,7 +50,6 @@ python3 slicergui.py
 - HOTWIRE_LENGTH: length between the two motor planes
 - HOTWIRE_OFFSET: length from first motor to workpiece in mm
 - HOTWIRE_WIDTH: width of the wire/how much is melted in mm
-    - can be set in ui
     - used by curve padding
 - WORKPIECE_SIZE: used if dxf files
     * needs dimension of workpiece for proper offsets
@@ -81,7 +82,6 @@ python3 slicergui.py
 * get extreme points on that selected axis
     * might need to flip around this axis aswell
         * extension only works 1 way (wip)
-* 
 
 ### DXF Usage
 * dxf files only need 2d plots
@@ -102,3 +102,6 @@ python3 slicergui.py
 
 # Dev Documentation
 ## yeah, have fun
+
+# License
+MIT

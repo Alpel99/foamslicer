@@ -30,5 +30,36 @@ class Foamconfig():
         self.getConfig()
 
     def writeConfig(self):
-        print("Missing impl, setup writing of file")
-        pass
+        attributes = [a for a in dir(self) if not a.startswith('__') and not callable(getattr(self, a))]
+        data = []
+        switch = False
+        with open("config.py") as file:
+            for line in file:
+                if "'''" in line:
+                    switch = not switch
+                attr = line.split('=')[0].strip().lower()
+                if attr in attributes:
+                    var = getattr(self, attr)
+                    if type(var) is not str and type(var) is not list:
+                        data.append(f"{attr.upper()} = {var}\n")
+                    else:
+                        if type(var) is list:
+                            if type(var[0]) is not str:
+                                data.append(f"{attr.upper()} = {var}\n")
+                            else:
+                                data.append(f"{attr.upper()} = [")
+                                data.append(",".join([f"'{x}'" for x in var]))
+                                data.append("]\n")
+                        
+                        if type(var) is str:
+                            if('\n' in var):
+                                data.append(f"{attr.upper()} = '''{var}'''\n")
+                            else:
+                                data.append(f"{attr.upper()} = '{var}'\n")
+                else:
+                    if not switch and "'''" not in line:
+                        data.append(line)
+
+        with open('config.py', 'w') as file:
+            for line in data:
+                file.write(line)

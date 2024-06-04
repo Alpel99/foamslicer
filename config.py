@@ -1,7 +1,7 @@
 # constant xy offset from 0,0
-OFFSET = [10,10]
+OFFSET = [10, 10]
 
-NUM_POINTS = 100
+NUM_POINTS = 36
 
 # which dim is linear
 DIM_INDEX = 1
@@ -15,12 +15,12 @@ DIM_FLIP_Y = False
 DIM_FLIP_Z = True
 
 # number of segments number of different curves used for interpolation
-NUM_SEGMENTS = 40
+NUM_SEGMENTS = 8
 
-INPUT_FILE = ["files/wing-left-part4-V1_inside.DXF", "files/wing-left-part4-V1_outside.DXF"]
+INPUT_FILE = ['files/wing-left-part4-V1_inside.DXF','files/wing-left-part4-V1_outside.DXF']
 # INPUT_FILE = "files/rear-wing-test-for-cnc-cutter.stl"
 # INPUT_FILE = "Allerion_NO_horn.stl"
-OUTPUT_NAME = "out.ngc"
+OUTPUT_NAME = 'out.ngc'
 
 # epsilon for points on same axis
 # EPS = 2.220446049250313e-16
@@ -60,7 +60,7 @@ G94
 F300
 '''
 
-GCODE_AXIS = ["X", "Y", "Z", "A"]
+GCODE_AXIS = ['X','Y','Z','A']
 
 # Write G1 instead of G0
 GCODE_G1 = False

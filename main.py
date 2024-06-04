@@ -115,6 +115,7 @@ def getExtendedPoints(p1, p2, p1x, p2x, len):
 
 def writeGcodeInit(file, gcode_init):
     file.write(gcode_init)
+    file.write("\n")
     
 def writeG1Lines(file, points1, points2, gcode_axis, g1):
     for p1, p2 in zip(points1, points2):
@@ -433,11 +434,14 @@ def alignMesh(points, axis, mode):
     indxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
     hullpoints = points[hull.vertices][:, indxs[axis][0]]
     maxPoints = find_trapezoid_corners(hullpoints)
-    print(maxPoints)
-    
+
+    # plotPoints(hullpoints)
+    # plotPoints(maxPoints)
+
+
     if mode == 0:
         p1 = maxPoints[0]
-        p2 = maxPoints[1]
+        p2 = maxPoints[2]
     if mode == 1:
         p1 = maxPoints[1]
         p2 = maxPoints[3]
@@ -445,36 +449,27 @@ def alignMesh(points, axis, mode):
         p1 = (maxPoints[0]+maxPoints[1])/2
         p2 = (maxPoints[2]+maxPoints[3])/2
 
-    k = 0
-    refp = np.zeros((3,))
-    for i in range(3):
-        if i != axis:
-            refp[i] = p1[k]
-            k += 1
-        else:
-            refp[i] = 0
-
-    print(refp)
-
-    points = points-refp
     
     slope = (p2[1] - p1[1])/(p2[0]-p1[0])
     rotation_angle = np.arctan(slope)
     # print("rotation_angle (radians)", rotation_angle)
     
     rotation_axis = np.zeros((3,))
-    rotation_axis[axis] = 1
+    rotation_axis[indxs[axis][1]] = 1
     
     rot_mat = rotation_matrix(rotation_axis, rotation_angle)
     # print(rot_mat)
-    rotated_mesh = np.dot(points, rot_mat) + refp
+    rotated_mesh = np.dot(points, rot_mat)
     
     
     hull = ConvexHull(rotated_mesh)
     indxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
     hullpoints = rotated_mesh[hull.vertices][:, indxs[axis][0]]
     maxPoints = find_trapezoid_corners(hullpoints)
-    print(maxPoints)
+    # print(maxPoints)
+
+    # plotPoints(hullpoints)
+    # plotPoints(maxPoints, True)
 
     return rotated_mesh
 
@@ -491,8 +486,9 @@ if __name__ == "__main__":
     
     points = shiftMesh(points)
     # getAlignPoints(points, 0)
-    alignMesh(points, 0, 0)
-
+    points = alignMesh(points, 0, 0)
+    points = alignMesh(points, 0, 0)
+    points = alignMesh(points, 0, 0)
     exit()
     hull = ConvexHull(points)
     indxs = [[[0,1],2], [[1,2],0], [[0,2],1]]

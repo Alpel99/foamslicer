@@ -15,6 +15,7 @@ class MainApplication(tk.Frame):
         self.style = ttk.Style()
         ttk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+        self.parent.title('Foamslicer')
         self.parent.grid_columnconfigure(0, weight=1)
         self.parent.grid_rowconfigure(0, weight=1)
 
@@ -51,9 +52,9 @@ class MainApplication(tk.Frame):
         self.radio3 = tk.Radiobutton(self.tool_bar, text="Z", variable=self.axis, value=2).grid(row=4, column=2, sticky="nsew")
 
         tk.Button(self.tool_bar, text="Rotate Mesh", command=self.rotateMesh).grid(row=5, columnspan=3, sticky="nsew")
-        # tk.Button(self.tool_bar, text="Align Min", command=self.alignMin).grid(row=3, column=0, sticky="nsew")
-        # tk.Button(self.tool_bar, text="Align Mid", command=self.alignMid).grid(row=3, column=1, sticky="nsew")
-        # tk.Button(self.tool_bar, text="Align Max", command=self.alignMax).grid(row=3, column=2, sticky="nsew")
+        tk.Button(self.tool_bar, text="Align Min", command=self.alignMin).grid(row=3, column=0, sticky="nsew")
+        tk.Button(self.tool_bar, text="Align Mid", command=self.alignMid).grid(row=3, column=1, sticky="nsew")
+        tk.Button(self.tool_bar, text="Align Max", command=self.alignMax).grid(row=3, column=2, sticky="nsew")
 
         tk.Button(self.tool_bar, text="Flip Mesh", command=self.flipMesh).grid(row=6, columnspan=3, sticky="nsew")
         
@@ -242,6 +243,7 @@ class MainApplication(tk.Frame):
 
     def on_closing(self):
         plt.close()
+        self.slicer.config.writeConfig()
         self.parent.destroy()
 
 

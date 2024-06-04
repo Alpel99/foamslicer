@@ -148,6 +148,7 @@ class Foamslicer():
 
 if __name__ == "__main__":
     slicer = Foamslicer()
+    slicer.config.input_file="files/rear-wing-test-for-cnc-cutter.stl"
     slicer.readFiles()
     points = slicer.getPoints()
     # print(points)

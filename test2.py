@@ -4,6 +4,14 @@ import ezdxf
 
 from main import readDXF, plotPoints
 
+from slicerconfig import Foamconfig
+
+cnf = Foamconfig()
+cnf.writeConfig()
+
+
+
+exit()
 
 dist = 0.05
 segments = 4

@@ -78,7 +78,7 @@ class MainApplication(tk.Frame):
         self.evpoints.grid(columnspan=3, sticky="nsew")
         
         if(self.slicer.dxf):
-            tk.Label(self.tool_bar, text="Workpiece Size").grid(row=12, column=0)
+            tk.Label(self.tool_bar, text="WorkP Size").grid(row=12, column=0)
             self.workPSize = tk.Entry(self.tool_bar)
             self.workPSize.grid(row=12, column=1)
             self.workPSize.insert(tk.END, self.slicer.config.workpiece_size)
@@ -159,7 +159,11 @@ class MainApplication(tk.Frame):
         self.slicer.config.dim_flip_z = self.axis.get() == 2
         self.slicer.config.dim_index = None
         self.slicer.flipMesh()
-        self.plot3d()
+        if self.slicer.dxf:
+            self.plot2d(self.slicer.c1)
+            self.plot2d(self.slicer.c2)
+        else:
+            self.plot3d()
 
     def alignMin(self):
         self.slicer.config.dim_index = self.axis.get()

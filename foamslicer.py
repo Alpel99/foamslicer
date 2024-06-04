@@ -19,8 +19,8 @@ class Foamslicer():
 
     def curveNormalization(self):
         if self.c1old is None:
-            self.c1old = self.c1
-            self.c2old = self.c2
+            self.c1old = self.c1.copy()
+            self.c2old = self.c2.copy()
         self.c1 = helpers.extendPoints(self.c1old, self.config.hotwire_width)
         self.c2 = helpers.extendPoints(self.c2old, self.config.hotwire_width)
 
@@ -47,13 +47,12 @@ class Foamslicer():
         else:
             m2 = 0
             m1 = self.config.workpiece_size
-        print(m1, m2)
         offset = self.config.hotwire_length - self.config.hotwire_offset
         self.cp2e = helpers.getExtendedPoints(self.cp2, self.cp1, m1, m2, offset)
         if(self.config.hotwire_offset > 0):
             self.cp1e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, self.config.hotwire_offset)
         else:
-            self.cp1e = self.cp1
+            self.cp1e = self.cp1.copy()
 
     def getPointsFromSplines(self):
         c = self.config
@@ -78,9 +77,20 @@ class Foamslicer():
 
     def flipMesh(self):
         c = self.config
-        dim_idx = self.config.dim_index
-        flips = [c.dim_flip_x, c.dim_flip_y, c.dim_flip_z]
-        self.points = helpers.flipMesh(self.points, flips, dim_idx)
+        if self.dxf:
+            if(c.dim_flip_x):
+                self.c1[:, 0] = -self.c1[:, 0]
+                self.c2[:, 0] = -self.c2[:, 0]
+            if(c.dim_flip_y):
+                self.c1, self.c2 = self.c2, self.c1
+            if(c.dim_flip_z):
+                self.c1[:, 1] = -self.c1[:, 1]
+                self.c2[:, 1] = -self.c2[:, 1]
+            self.applyShapeOffset()
+        else:    
+            dim_idx = self.config.dim_index
+            flips = [c.dim_flip_x, c.dim_flip_y, c.dim_flip_z]
+            self.points = helpers.flipMesh(self.points, flips, dim_idx)
 
     def alignMeshAxis(self):
         self.hull = ConvexHull(self.points)

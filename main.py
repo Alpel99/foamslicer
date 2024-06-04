@@ -421,7 +421,7 @@ def readDXF(doc, dist, segments):
         #     a2 = e.dxf.end_angle
         #     # maybe! e.dxf.flattening() works
     else:
-        print(f"ERROR: dxftype {e.dxftype()} not recognized")
+        print(f"WARNING: dxftype {e.dxftype()} not recognized")
     return np.array(points)[:, :2]
 
 def getAlignPoints(points, idx):

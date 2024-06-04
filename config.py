@@ -42,7 +42,7 @@ HOTWIRE_OFFSET = 0
 HOTWIRE_WIDTH = 1.2
 
 # size of piece between dxf curves
-WORKPIECE_SIZE = 1500
+WORKPIECE_SIZE = 150
 
 
 GCODE_INIT = '''G17

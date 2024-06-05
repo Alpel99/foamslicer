@@ -10,6 +10,7 @@ class Foamslicer():
         self.config = slicerconfig.Foamconfig()
         self.alignidxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
         self.c1 = self.c2 = None
+        self.cp1 = self.cp2 = None
         self.cp1e = self.cp2e = None
         self.c1old = self.c2old = None
         self.dxf = False
@@ -83,6 +84,11 @@ class Foamslicer():
                 self.c2[:, 0] = -self.c2[:, 0]
             if(c.dim_flip_y):
                 self.c1, self.c2 = self.c2, self.c1
+                if self.cp1 is not None:
+                    self.cp1, self.cp2 = self.cp2, self.cp1
+                if self.cp1e is not None:
+                    self.cp1e, self.cp2e = self.cp2e, self.cp1e
+                self.c1old = None
             if(c.dim_flip_z):
                 self.c1[:, 1] = -self.c1[:, 1]
                 self.c2[:, 1] = -self.c2[:, 1]

@@ -33,7 +33,7 @@ PARALLEL_EPS = 0.001
 X_EPS = 0.1
 
 # Hot wire length (mm)
-HOTWIRE_LENGTH = 300
+HOTWIRE_LENGTH = 1000
 
 # Offset from 0 point (motor movement plane) (mm)
 HOTWIRE_OFFSET = 0

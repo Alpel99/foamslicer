@@ -25,8 +25,8 @@ gcode generator from stl or dxf files for airfoils (or other convex shapes)
 # User Documentation
 ## Setup
 ```bash
-git clone
-pip install requirements.txt
+git clone https://github.com/Alpel99/foamslicer.git
+pip install -r requirements.txt
 python3 slicergui.py
 ```
 

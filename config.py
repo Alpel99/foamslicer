@@ -4,7 +4,7 @@ OFFSET = [10, 10]
 NUM_POINTS = 36
 
 # which dim is linear
-DIM_INDEX = 1
+DIM_INDEX = None
 
 # which axis is surface normal to the trapezoid of the wing
 TRAPZ_IDX = 0

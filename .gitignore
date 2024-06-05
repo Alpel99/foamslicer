@@ -2,4 +2,4 @@ venv/
 __pycache__/
 out.ngc
 figures/
-config2.py
+config.py

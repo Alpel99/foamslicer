@@ -109,8 +109,8 @@ class MainApplication(tk.Frame):
         self.slicer.applyShapeOffset()
         if self.slicer.cp1e is not None and self.slicer.cp2e is not None:
             self.gengcode.config(state="normal")
-        self.plot2d(self.slicer.cp1e)
-        self.plot2d(self.slicer.cp2e)
+        self.plot2d(self.slicer.cp1e, label="front")
+        self.plot2d(self.slicer.cp2e, label="back")
 
 
     def evenPoints(self):
@@ -122,21 +122,21 @@ class MainApplication(tk.Frame):
         self.slicer.getPointsFromSplines()
         if self.slicer.cp1 is not None and self.slicer.cp2 is not None:
             self.extpoints.config(state="normal")
-        self.plot2d(self.slicer.cp1)
-        self.plot2d(self.slicer.cp2)
+        self.plot2d(self.slicer.cp1, label="front")
+        self.plot2d(self.slicer.cp2, label="back")
     
     def curvePadding(self):
         # hww = float(self.paddingSize.get()) if self.paddingSize.get() else self.slicer.config.hotwire_width
         # self.slicer.config.hotwire_width = hww
         self.slicer.curveNormalization()
-        self.plot2d(self.slicer.c1)
-        self.plot2d(self.slicer.c2)
+        self.plot2d(self.slicer.c1, label="front")
+        self.plot2d(self.slicer.c2, label="back")
 
     def initData(self):
         self.setupToolbar()
         if self.slicer.dxf:
-            self.plot2d(self.slicer.c1)
-            self.plot2d(self.slicer.c2)
+            self.plot2d(self.slicer.c1, label="front")
+            self.plot2d(self.slicer.c2, label="back")
             self.evpoints.config(state="normal")
             self.cpad.config(state="normal")
         else:
@@ -151,8 +151,8 @@ class MainApplication(tk.Frame):
         if self.slicer.c1 is not None and self.slicer.c2 is not None:
             self.evpoints.config(state="normal")
             self.cpad.config(state="normal")
-        self.plot2d(self.slicer.c1)
-        self.plot2d(self.slicer.c2)
+        self.plot2d(self.slicer.c1, label="front")
+        self.plot2d(self.slicer.c2, label="back")
 
     def flipMesh(self):
         self.slicer.config.dim_flip_x = self.axis.get() == 0
@@ -161,8 +161,8 @@ class MainApplication(tk.Frame):
         self.slicer.config.dim_index = None
         self.slicer.flipMesh()
         if self.slicer.dxf:
-            self.plot2d(self.slicer.c1)
-            self.plot2d(self.slicer.c2)
+            self.plot2d(self.slicer.c1, label="front")
+            self.plot2d(self.slicer.c2, label="back")
         else:
             self.plot3d()
 
@@ -215,6 +215,8 @@ class MainApplication(tk.Frame):
         self.ax.plot(points[:, 0], points[:, 1], 'o-', label=label)
         self.ax.set_aspect('equal')
         # self.ax.legend()
+        self.legend = self.ax.legend(loc='lower center', bbox_to_anchor=(0.5,1))
+        self.ax.add_artist(self.legend)
         self.figure.canvas.draw()
 
 

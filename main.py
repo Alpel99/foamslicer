@@ -1,4 +1,4 @@
-import meshio, datetime, itertools
+import meshio, datetime, itertools, ezdxf
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline, make_interp_spline, UnivariateSpline
@@ -36,7 +36,6 @@ def orderPoints(points):
     vectors = points - points[np.argmin(points[:, 0])]
     # vectors = points - barycenter
     angles = np.arctan2(vectors[:, 1], vectors[:, 0])
-    # print(angles)
     angles = angles - np.pi/2
     angles = np.mod(angles + np.pi, 2 * np.pi) - np.pi
     sorted_indices = np.argsort(angles)
@@ -106,11 +105,16 @@ def getEvenPoints(points, points_per_segment, num_segments):
         data = np.vstack([data, cs(t)])
     return data
 
-def getExtendedPoints(p1, p2, p1x, p2x, len):
+def getExtendedPoints(p1, p2, m1, m2, l):
     data = np.zeros(p1.shape)
-    t = (p2x - p1x)/len
+    # t = (p2x - p1x)/l
+    t = l/(m2 - m1)
+    # print(t)
     for i, (pp1, pp2) in enumerate(zip(p1, p2)):
-        data[i] = pp2 + t * (pp1 - pp2)
+        data[i] = pp1 + t * (pp2 - pp1)
+        # if i == 0:
+            # print(pp2, pp1)
+            # print(data[i])
     return data
 
 def writeGcodeInit(file, gcode_init):
@@ -154,8 +158,8 @@ def checkHotwireDim(maxmin):
     
 def getMeshMaxMin(mesh):
     maxmin = np.zeros((2,3))
-    maxmin[0] = np.max(mesh, axis=0)
-    maxmin[1] = np.min(mesh, axis=0)
+    maxmin[0] = np.min(mesh, axis=0)
+    maxmin[1] = np.max(mesh, axis=0)
     return maxmin
 
 def getOrderedExtremePoints(maxmin, mesh, idx, dim_idx, x_eps):
@@ -474,10 +478,26 @@ def alignMesh(points, axis, mode):
     return rotated_mesh
 
 
-
-
-
 if __name__ == "__main__":
+    d1 = ezdxf.readfile('files/wing-left-part4-V1_inside.DXF')
+    c1 = readDXF(d1, 0.01, NUM_SEGMENTS/4)
+    print(c1)
+    o = getOffset(c1)
+    print(o)
+    print(np.min(c1))
+    c1 -= o
+
+    barycenter = np.mean(c1, axis=0)
+    plt.plot(barycenter[0], barycenter[1], "o")
+    print(barycenter)
+    # plotPoints(c1, True)
+
+    co1 = orderPoints(c1)
+    plotPoints(co1, True)
+
+
+
+    exit()
     mesh = meshio.read(INPUT_FILE)
     
     # only work with points as mesh

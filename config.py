@@ -4,15 +4,15 @@ OFFSET = [10, 10]
 NUM_POINTS = 36
 
 # which dim is linear
-DIM_INDEX = None
+DIM_INDEX = 1
 
 # which axis is surface normal to the trapezoid of the wing
-TRAPZ_IDX = 0
+TRAPZ_IDX = 1
 
 # needs to flip xy dir? - doesnt change a thing? -> have to *-1 the y values
 DIM_FLIP_X = False
-DIM_FLIP_Y = False
-DIM_FLIP_Z = True
+DIM_FLIP_Y = True
+DIM_FLIP_Z = False
 
 # number of segments number of different curves used for interpolation
 NUM_SEGMENTS = 8
@@ -33,10 +33,10 @@ PARALLEL_EPS = 0.001
 X_EPS = 0.1
 
 # Hot wire length (mm)
-HOTWIRE_LENGTH = 1000
+HOTWIRE_LENGTH = 250
 
 # Offset from 0 point (motor movement plane) (mm)
-HOTWIRE_OFFSET = 0
+HOTWIRE_OFFSET = 50
 
 # Wire width
 HOTWIRE_WIDTH = 1.2

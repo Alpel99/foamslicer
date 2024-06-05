@@ -84,16 +84,27 @@ class MainApplication(tk.Frame):
             self.workPSize.grid(row=12, column=1)
             self.workPSize.insert(tk.END, self.slicer.config.workpiece_size)
         self.extpoints = tk.Button(self.tool_bar, text="Extend Points", command=self.extendPoints, state="disabled")
-        self.extpoints.grid(columnspan=3, sticky="nsew")
+        self.extpoints.grid(row=13, column=0, columnspan=2, sticky="nsew")
+
+        self.ext3d = tk.Button(self.tool_bar, text="3D", command=self.switch3dExtended, state=self.extpoints.cget("state"), relief="raised")
+        self.ext3d.grid(row=13, column=2,columnspan=1, sticky="nsew")
 
         self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="disabled")
-        self.gengcode.grid(columnspan=3, sticky="nsew")
+        self.gengcode.grid(row=14, columnspan=3, sticky="nsew")
 
-        tk.Button(self.tool_bar, text="Open New", command=self.getFiles).grid(columnspan=3, sticky="nsew")
+        tk.Button(self.tool_bar, text="Open New", command=self.getFiles).grid(row=15, columnspan=3, sticky="nsew")
 
         # Apply padding to all widgets in the toolbar
         for child in self.tool_bar.winfo_children():
             child.grid_configure(pady=3, padx=3)
+
+    def switch3dExtended(self, swap=True):
+        if swap: self.ext3d.config(relief="raised" if self.ext3d.cget("relief") == 'sunken' else "sunken")
+        if self.ext3d.cget("relief") == 'raised':
+            self.plot2d(self.slicer.cp1e, label="front")
+            self.plot2d(self.slicer.cp2e, label="back")
+        else:
+            self.plot3d(self.slicer.points3d)
 
     def generateGcode(self):
         try:
@@ -105,12 +116,17 @@ class MainApplication(tk.Frame):
             tk.messagebox.showinfo("GCODE", "GCODE write success")
 
     def extendPoints(self):
+        wPSize = int(self.workPSize.get()) if self.workPSize.get() else self.slicer.config.workpiece_size
+        self.slicer.config.workPSize = wPSize
         self.slicer.getExtendedPoints()
         self.slicer.applyShapeOffset()
         if self.slicer.cp1e is not None and self.slicer.cp2e is not None:
             self.gengcode.config(state="normal")
-        self.plot2d(self.slicer.cp1e, label="front")
-        self.plot2d(self.slicer.cp2e, label="back")
+            self.ext3d.config(state="normal")
+        self.slicer.generate3DPoints()
+        self.switch3dExtended(False)
+        # self.plot2d(self.slicer.cp1e, label="front")
+        # self.plot2d(self.slicer.cp2e, label="back")
 
 
     def evenPoints(self):
@@ -141,7 +157,7 @@ class MainApplication(tk.Frame):
             self.cpad.config(state="normal")
         else:
             self.slicer.getPoints()
-            self.plot3d()
+            self.plot3d(self.slicer.points)
 
     def extremePoints(self):
         self.slicer.shiftMesh()
@@ -164,38 +180,38 @@ class MainApplication(tk.Frame):
             self.plot2d(self.slicer.c1, label="front")
             self.plot2d(self.slicer.c2, label="back")
         else:
-            self.plot3d()
+            self.plot3d(self.slicer.points)
 
     def alignMin(self):
         self.slicer.config.dim_index = self.axis.get()
         self.slicer.config.mode = 0
         self.slicer.alignMesh()
-        self.plot3d()
+        self.plot3d(self.slicer.points)
 
     def alignMax(self):
         self.slicer.config.dim_index = self.axis.get()
         self.slicer.config.mode = 1
         self.slicer.alignMesh()
-        self.plot3d()
+        self.plot3d(self.slicer.points)
 
     def alignMid(self):
         self.slicer.config.dim_index = self.axis.get()
         self.slicer.config.mode = 2
         self.slicer.alignMesh()
-        self.plot3d()
+        self.plot3d(self.slicer.points)
 
     def rotateMesh(self):
         self.slicer.config.trapz_idx = self.axis.get()
         self.slicer.alignMeshAxis()
-        self.plot3d()
+        self.plot3d(self.slicer.points)
 
-    def plot3d(self):
-        self.slicer.shiftMesh()
+    def plot3d(self, points):
+        if not self.slicer.dxf:
+            self.slicer.shiftMesh()
         if '2d' in self.ax.name:
             self.resetPlot()
         self.ax.remove()
         self.ax = self.figure.add_subplot(projection='3d')
-        points = self.slicer.points
         self.ax.scatter(points[:, 0], points[:, 1], points[:, 2])
         self.ax.set_aspect('equal', adjustable='box')
         self.ax.set_xlabel('X')

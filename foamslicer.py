@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 import slicerconfig as slicerconfig
 import main as helpers
+import numpy as np
 
 
 class Foamslicer():
@@ -14,6 +15,30 @@ class Foamslicer():
         self.cp1e = self.cp2e = None
         self.c1old = self.c2old = None
         self.dxf = False
+
+    def generate3DPoints(self):
+        cp1edim = -self.config.hotwire_offset
+        cp2edim = self.config.hotwire_length
+        cp1dim = 0
+        self.points3d = np.zeros((3,))
+        if(self.dxf):
+            cp2dim = self.config.workpiece_size
+        else:
+            cp2dim = self.maxmin[1][self.config.dim_index]
+        
+        if self.cp1e is not None:
+            self.cp1e3d = np.insert(self.cp1e, 2, cp1edim, axis=1)
+            self.points3d = np.vstack((self.points3d, self.cp1e3d))
+        if self.cp2e is not None:
+            self.cp2e3d = np.insert(self.cp2e, 2, cp2edim, axis=1)
+            self.points3d = np.vstack((self.points3d, self.cp2e3d))
+        if self.cp1 is not None:
+            self.cp13d = np.insert(self.cp1, 2, cp1dim, axis=1)
+            self.points3d = np.vstack((self.points3d, self.cp13d))
+        if self.cp2 is not None:
+            self.cp23d = np.insert(self.cp2, 2, cp2dim, axis=1)
+            self.points3d = np.vstack((self.points3d, self.cp23d))
+
 
     def alignMesh(self):
         self.points = helpers.alignMesh(self.points, self.config.dim_index, self.config.mode)
@@ -46,12 +71,14 @@ class Foamslicer():
             m1 = self.maxmin[0][self.config.dim_index]
             m2 = self.maxmin[1][self.config.dim_index]
         else:
-            m2 = 0
-            m1 = self.config.workpiece_size
+            m1 = 0
+            m2 = self.config.workpiece_size
+        # TODO: implement this properly
+        # helpers.checkHotwireDim()
         offset = self.config.hotwire_length - self.config.hotwire_offset
-        self.cp2e = helpers.getExtendedPoints(self.cp2, self.cp1, m1, m2, offset)
+        self.cp2e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, offset)
         if(self.config.hotwire_offset > 0):
-            self.cp1e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, self.config.hotwire_offset)
+            self.cp1e = helpers.getExtendedPoints(self.cp2, self.cp1, m2, m1, self.config.hotwire_offset)
         else:
             self.cp1e = self.cp1.copy()
 
@@ -123,9 +150,9 @@ class Foamslicer():
             self.c2 = helpers.readDXF(d2, dist, segs)
         else:
             self.c2 = self.c1.copy()
-        # self.c1 = helpers.orderPoints(self.c1)
-        # self.c2 = helpers.orderPoints(self.c2)
         self.applyShapeOffset()
+        self.c1 = helpers.orderPoints(self.c1)
+        self.c2 = helpers.orderPoints(self.c2)
 
     def readFiles(self):
         input = self.config.input_file

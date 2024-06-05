@@ -41,6 +41,8 @@ python3 slicergui.py
 - DIM_INDEX: dimension of extreme points without gui
 - TRAPZ_IDX: only for rotation without gui
 - DIM_FLIP*: for flips without gui
+- NUM_SEGMENTS: (aka NumSplines):
+    - how many splines to interpolate the wing shape
 - INPUT_FILE: set input file, can be done in gui
 - OUTPUT_NAME: name of written gcode file
 - EPS: to determine points from stl to be in plane 

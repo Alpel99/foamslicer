@@ -26,12 +26,11 @@ class MainApplication(tk.Frame):
                 
         self.parent.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.slicer = Foamslicer()
+        self.setupPlot()
         if not self.slicer.config.input_file:
             self.getFiles()
 
         # self.setupToolbar()
-        self.setupPlot()
-
         if self.slicer.config.input_file:
             self.slicer.readFiles()
             self.initData()

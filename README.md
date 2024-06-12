@@ -10,10 +10,9 @@ gcode generator from stl or dxf files for airfoils (or other convex shapes)
     * problem with middle -> how to find, need to be already orth on 1 axis
 * probably lots of bugs still
 * catch more errors?
-* ordered points from dxf did not work
 * checkHotwireDim does exist, should be used
     * is by far not correct, e.g. no dxf
-
+* curve padding is dependent on order of points
 
 ## todo Documentation
 * write proper documentation

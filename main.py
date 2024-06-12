@@ -44,9 +44,10 @@ def orderPoints(points):
     ordered = points[sorted_indices]
 
     min_x_index = np.argmin(ordered[:, 0])
-    ordered = np.roll(ordered, -min_x_index, axis=0)
+    ordered = np.roll(ordered,  -min_x_index, axis=0)
 
     # ordered = np.vstack([ordered, ordered[0]])
+    ordered = ordered[::-1]
     return ordered
 
 def getLength(points):
@@ -308,6 +309,11 @@ def flipMesh(mesh, flips, dim_idx = None):
 def getSplines(points, nsegments):
     xmax = np.argmax(points[:, 0])
     xmin = np.argmin(points[:, 0])
+    # make points unique
+    unique_points, indices = np.unique(points, axis=0, return_index=True)
+    sorted_indices = np.sort(indices)
+    points = points[sorted_indices]
+
     # print(xmax, xmin)
     l = len(points)
     # print(l)

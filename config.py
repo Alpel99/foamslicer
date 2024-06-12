@@ -17,7 +17,7 @@ DIM_FLIP_Z = False
 # number of segments number of different curves used for interpolation
 NUM_SEGMENTS = 1
 
-INPUT_FILE = ['/home/paul/Documents/A2/foamslicer/files/back_wing_inside_4_hwc-slicer_actual_V2.DXF','/home/paul/Documents/A2/foamslicer/files/back_wing_outside_4_hwc-slicer_actual_V2.DXF']
+INPUT_FILE = []
 # INPUT_FILE = "files/rear-wing-test-for-cnc-cutter.stl"
 # INPUT_FILE = "Allerion_NO_horn.stl"
 OUTPUT_NAME = 'out.ngc'

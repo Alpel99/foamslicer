@@ -19,7 +19,7 @@ class Foamslicer():
     def generate3DPoints(self):
         self.applyShapeOffset()
         cp1edim = -self.config.hotwire_offset
-        cp2edim = self.config.hotwire_length
+        cp2edim = self.config.hotwire_length - self.config.hotwire_offset
         cp1dim = 0
         self.points3d = np.zeros((3,))
         if(self.dxf):

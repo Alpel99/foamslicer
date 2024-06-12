@@ -17,6 +17,7 @@ class Foamslicer():
         self.dxf = False
 
     def generate3DPoints(self):
+        self.applyShapeOffset()
         cp1edim = -self.config.hotwire_offset
         cp2edim = self.config.hotwire_length
         cp1dim = 0
@@ -38,7 +39,7 @@ class Foamslicer():
         if self.cp2 is not None:
             self.cp23d = np.insert(self.cp2, 2, cp2dim, axis=1)
             self.points3d = np.vstack((self.points3d, self.cp23d))
-
+        # print(self.cp1e[0], self.cp1[0])
 
     def alignMesh(self):
         self.points = helpers.alignMesh(self.points, self.config.dim_index, self.config.mode)
@@ -56,12 +57,14 @@ class Foamslicer():
         return res
 
     def applyShapeOffset(self):
+        self.shape_offset = helpers.getOffset(self.c1, self.c2, self.cp1, self.cp2, self.cp1e, self.cp2e)
         if(self.c1 is not None):
-            self.shape_offset = helpers.getOffset(self.c1, self.c2)
             self.c1 -= self.shape_offset
             self.c2 -= self.shape_offset
+        if(self.cp1 is not None):
+            self.cp1 -= self.shape_offset
+            self.cp2 -= self.shape_offset
         if(self.cp1e is not None):
-            self.shape_offset = helpers.getOffset(self.cp1e, self.cp2e)
             self.cp1e -= self.shape_offset
             self.cp2e -= self.shape_offset
             self.true_offset = -self.shape_offset + self.config.offset
@@ -76,9 +79,9 @@ class Foamslicer():
         # TODO: implement this properly
         # helpers.checkHotwireDim()
         offset = self.config.hotwire_length - self.config.hotwire_offset
-        self.cp2e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, offset)
+        self.cp2e = helpers.getExtendedPoints(self.cp2, self.cp1, m2, m1, offset)
         if(self.config.hotwire_offset > 0):
-            self.cp1e = helpers.getExtendedPoints(self.cp2, self.cp1, m2, m1, self.config.hotwire_offset)
+            self.cp1e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, -self.config.hotwire_offset)
         else:
             self.cp1e = self.cp1.copy()
 

@@ -1,7 +1,7 @@
 # constant xy offset from 0,0
 OFFSET = [10, 10]
 
-NUM_POINTS = 36
+NUM_POINTS = 50
 
 # which dim is linear
 DIM_INDEX = 1
@@ -15,7 +15,7 @@ DIM_FLIP_Y = True
 DIM_FLIP_Z = False
 
 # number of segments number of different curves used for interpolation
-NUM_SEGMENTS = 8
+NUM_SEGMENTS = 1
 
 INPUT_FILE = ['files/wing-left-part4-V1_inside.DXF','files/wing-left-part4-V1_outside.DXF']
 # INPUT_FILE = "files/rear-wing-test-for-cnc-cutter.stl"
@@ -33,16 +33,16 @@ PARALLEL_EPS = 0.001
 X_EPS = 0.1
 
 # Hot wire length (mm)
-HOTWIRE_LENGTH = 250
+HOTWIRE_LENGTH = 1000
 
 # Offset from 0 point (motor movement plane) (mm)
-HOTWIRE_OFFSET = 50
+HOTWIRE_OFFSET = 200
 
 # Wire width
 HOTWIRE_WIDTH = 1.2
 
 # size of piece between dxf curves
-WORKPIECE_SIZE = 150
+WORKPIECE_SIZE = 600
 
 
 GCODE_INIT = '''G17
@@ -60,7 +60,7 @@ G94
 F300
 '''
 
-GCODE_AXIS = ['X','Y','A','Z']
+GCODE_AXIS = ['X','Y','Z','A']
 
 # Write G1 instead of G0
 GCODE_G1 = False

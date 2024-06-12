@@ -33,14 +33,19 @@ def orderPoints(points):
     barycenter = np.mean(points, axis=0)
     # print("barycenter", barycenter)
     # print(np.argmin(points[:,0]))
-    vectors = points - points[np.argmin(points[:, 0])]
+    ex = np.argmin(points[:, 0])
+    vectors = points - barycenter
     # vectors = points - barycenter
-    angles = np.arctan2(vectors[:, 1], vectors[:, 0])
+    angles = np.arctan2(vectors[:, 0], vectors[:, 1])
     angles = angles - np.pi/2
     angles = np.mod(angles + np.pi, 2 * np.pi) - np.pi
     sorted_indices = np.argsort(angles)
     # sorted_indices = np.lexsort((angles, points[:, 1]))
     ordered = points[sorted_indices]
+
+    min_x_index = np.argmin(ordered[:, 0])
+    ordered = np.roll(ordered, -min_x_index, axis=0)
+
     # ordered = np.vstack([ordered, ordered[0]])
     return ordered
 
@@ -51,8 +56,9 @@ def getLength(points):
 def getOffset(*argv):
     data = []
     for points in argv:
-        m1 = np.min(points, axis=0)
-        data.append(m1)
+        if points is not None:
+            m1 = np.min(points, axis=0)
+            data.append(m1)
     diff = np.min(data, axis=0)
     return diff
 

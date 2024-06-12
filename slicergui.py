@@ -39,6 +39,8 @@ class MainApplication(tk.Frame):
     def setupToolbar(self):
         for child in self.tool_bar.winfo_children():
             child.destroy()
+
+        tk.Button(self.tool_bar, text="Open New", command=self.getFiles).grid(row=0, columnspan=3, sticky="nsew")
            
         tk.Button(self.tool_bar, text="Init Data", command=self.initData).grid(row=1, columnspan=3, sticky="nsew")
         tk.Button(self.tool_bar, text="Empty Plot", command=self.resetPlot).grid(row=2, columnspan=3, sticky="nsew")
@@ -91,8 +93,6 @@ class MainApplication(tk.Frame):
 
         self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="disabled")
         self.gengcode.grid(row=14, columnspan=3, sticky="nsew")
-
-        tk.Button(self.tool_bar, text="Open New", command=self.getFiles).grid(row=15, columnspan=3, sticky="nsew")
 
         # Apply padding to all widgets in the toolbar
         for child in self.tool_bar.winfo_children():

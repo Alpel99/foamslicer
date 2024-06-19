@@ -1,4 +1,3 @@
-import config as text_config
 import json, os
 
 class Foamconfig():

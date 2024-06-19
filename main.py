@@ -3,14 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline, make_interp_spline, UnivariateSpline
 from scipy.spatial import ConvexHull
-from config import DIM_INDEX, DIM_FLIP_X, DIM_FLIP_Y , NUM_POINTS, OFFSET, NUM_SEGMENTS, OUTPUT_NAME, HOTWIRE_LENGTH, HOTWIRE_OFFSET, GCODE_INIT, INPUT_FILE, EPS, PARALLEL_EPS, TRAPZ_IDX, X_EPS, HOTWIRE_WIDTH, DIM_FLIP_Z, GCODE_AXIS, GCODE_G1
+from slicerconfig import Foamconfig
 
 np.set_printoptions(suppress=True)
 
 def getExtremePoints(val, mesh, idx):
     data = []
     for p in mesh:
-        if abs(p[idx] - val) < EPS:
+        if abs(p[idx] - val) < config.eps:
             pn = []
             for j in range(0, len(p)):
                 if(j != idx):
@@ -85,15 +85,15 @@ def getPointsPerSegment(points, num_points, num_segments, segment_indices):
     return data.astype(int)
 
 def evenOutPPs(pps1, pps2):
-    if (d := np.sum(pps1)) != NUM_POINTS:
-            r = np.argsort(pps1) if d < NUM_POINTS else np.argsort(pps1)[::-1]
-            for i in range(abs(d-NUM_POINTS)):
+    if (d := np.sum(pps1)) != config.num_points:
+            r = np.argsort(pps1) if d < config.num_points else np.argsort(pps1)[::-1]
+            for i in range(abs(d-config.num_points)):
                 ind = r[i % len(pps1)]
-                pps1[ind] = pps1[ind] +1 if d < NUM_POINTS else pps1[ind] -1 if pps1[ind] > 0 else pps1[ind]
+                pps1[ind] = pps1[ind] +1 if d < config.num_points else pps1[ind] -1 if pps1[ind] > 0 else pps1[ind]
                     
     if (s1 := np.sum(pps1)) != (s2 := np.sum(pps2)):
-        r = np.argsort(pps2) if d < NUM_POINTS else np.argsort(pps2)[::-1]
-        for i in range(abs(d-NUM_POINTS)):
+        r = np.argsort(pps2) if d < config.num_points else np.argsort(pps2)[::-1]
+        for i in range(abs(d-config.num_points)):
             ind = r[i % len(pps2)]
             pps2[ind] = pps2[ind] +1 if s2 < s1 else pps2[ind] -1 if pps2[ind] > 0 else pps2[ind]        
     return pps1, pps2
@@ -157,9 +157,9 @@ def shiftMesh(mesh):
     return shifted_mesh
         
 def checkHotwireDim(maxmin):
-    cut_d = maxmin[0][DIM_INDEX] - maxmin[1][DIM_INDEX]
+    cut_d = maxmin[0][config.dim_index] - maxmin[1][config.dim_index]
     # print("cut_d", cut_d)
-    d_diff = HOTWIRE_LENGTH - cut_d
+    d_diff = config.hotwire_length - cut_d
     if(d_diff) < 0:
         raise Exception("Distance in stl greater than HOTWIRE_LENGTH")
     
@@ -198,15 +198,15 @@ def flipPoints(c1, c2, flipy, flipx):
 def getSegments(c1, c2):
     # set proper num_segments
     l = min(len(c1[:, 0]), len(c2[:, 0]))
-    num_segments = max(min(NUM_SEGMENTS, l-1),1)
+    num_segments = max(min(config.num_segments, l-1),1)
     segment_indices = np.linspace(0, l, num_segments + 1, dtype=int)
     return num_segments, segment_indices
 
 def writeFile(c1p, c2p, offset, gcode_init, gcode_axis, g1):
-    file1 = open(OUTPUT_NAME, "w")
+    file1 = open(config.output_name, "w")
     file1.write(f"( foamslicer.py, at {datetime.datetime.now()} )\n")
     file1.close()
-    file1 = open(OUTPUT_NAME, "a")
+    file1 = open(config.output_name, "a")
     writeGcodeInit(file1, gcode_init)
     writeOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, g1)
     file1.write(("( SHAPE )\n"))
@@ -291,7 +291,7 @@ def find_parallel_pairs(points):
         slope1 = (y2 - y1) / (x2 - x1)
         slope2 = (y4 - y3) / (x4 - x3)
         # Check if slopes are equal (parallel lines)
-        if abs(abs(slope1) - abs(slope2)) < PARALLEL_EPS:
+        if abs(abs(slope1) - abs(slope2)) < config.parallel_eps:
             parallel_pairs.append((pair1, pair2))
     
     if(len(parallel_pairs) > 0):
@@ -491,8 +491,10 @@ def alignMesh(points, axis, mode):
 
 
 if __name__ == "__main__":
+    config = Foamconfig()
+
     d1 = ezdxf.readfile('files/wing-left-part4-V1_inside.DXF')
-    c1 = readDXF(d1, 0.01, NUM_SEGMENTS/4)
+    c1 = readDXF(d1, 0.01, config.num_segments/4)
     print(c1)
     o = getOffset(c1)
     print(o)
@@ -510,7 +512,7 @@ if __name__ == "__main__":
 
 
     exit()
-    mesh = meshio.read(INPUT_FILE)
+    mesh = meshio.read(config.input_file)
     
     # only work with points as mesh
     points = mesh.points

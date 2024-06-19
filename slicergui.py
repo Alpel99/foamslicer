@@ -103,22 +103,23 @@ class MainApplication(tk.Frame):
             child.grid_configure(pady=3, padx=3)
 
     def openConfig(self):
-        top = tk.Toplevel(self.parent)
-        top.title("Config Editor")
-        top.geometry("900x600")
+        self.top = tk.Toplevel(self.parent)
+        self.top.title("Config Editor")
+        self.top.geometry("900x600")
         
         # Text widget with scrollbar
-        text_editor = scrolledtext.ScrolledText(top, width=40, height=10)
+        self.text_editor = scrolledtext.ScrolledText(self.top, width=40, height=10)
         
         # Pack the text editor and scrollbar
-        text_editor.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.text_editor.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
         
         # Load the config.json file into the text editor
-        self.load_config(text_editor)
+        self.load_config(self.text_editor)
 
+        self.top.bind('<Control-s>', self.save_config)
         # Save Button
-        save_button = tk.Button(top, text="Save Config", command=lambda: self.save_config(text_editor, top))
-        save_button.pack(side=tk.BOTTOM, padx=10, pady=10)
+        save_button = tk.Button(self.top, text="Save Config", command=self.save_config)
+        save_button.pack(side=tk.RIGHT, padx=10, pady=10)
 
     def load_config(self, text_editor):
         try:
@@ -128,13 +129,13 @@ class MainApplication(tk.Frame):
         except FileNotFoundError:
             messagebox.showerror("Error", "Config file not found!")
 
-    def save_config(self, text_editor, top):
+    def save_config(self):
         try:
             with open("config.json", 'w') as f:
-                config_content = text_editor.get('1.0', tk.END)
+                config_content = self.text_editor.get('1.0', tk.END)
                 f.write(config_content)
                 # messagebox.showinfo("Success", "Config file saved successfully!")
-                top.destroy()  # Close the editor window after saving
+                self.top.destroy()  # Close the editor window after saving
             self.slicer.config.getConfig()
             self.setupToolbar()
         except Exception as e:

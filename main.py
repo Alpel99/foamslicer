@@ -208,10 +208,10 @@ def writeFile(c1p, c2p, offset, gcode_init, gcode_axis, g1):
     file1.close()
     file1 = open(config.output_name, "a")
     writeGcodeInit(file1, gcode_init)
-    writeOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, g1)
+    writeOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, False)
     file1.write(("( SHAPE )\n"))
     writeG1Lines(file1, c1p + offset, c2p + offset, gcode_axis, g1)
-    reverseOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, g1)
+    reverseOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, False)
     return True
 
 
@@ -391,7 +391,7 @@ def plotSplines(splines1, numpoints):
     plt.legend()
     plt.show()
 
-def extendPoints(points, wire_width):
+def padCurve(points, wire_width):
     xmin = np.argmin(points[:, 0])
     x = points[:, 0]
     x = np.concatenate(([x[-1]], x, [x[0]]))
@@ -403,9 +403,9 @@ def extendPoints(points, wire_width):
     norms = np.linalg.norm(orthogonal_vectors, axis=1)
     normalized_vectors = (orthogonal_vectors.T / norms).T
     res_vectors = normalized_vectors * wire_width
-    res = points + res_vectors
-    new_point = points[xmin] - [wire_width**2, 0]
-    res = np.insert(res, xmin, new_point, axis=0)
+    res = points - res_vectors
+    # new_point = points[xmin] - [wire_width**2, 0]
+    # res = np.insert(res, xmin, new_point, axis=0)
     return res
 
 def create3dplot(points):
@@ -554,7 +554,7 @@ if __name__ == "__main__":
     print("c2", len(c2))
     plotPoints(c1)
     
-    c1 = extendPoints(c1, HOTWIRE_WIDTH)
+    c1 = padCurve(c1, HOTWIRE_WIDTH)
 
     plotPoints(c1, True)
 

@@ -2,33 +2,33 @@ import json, os
 
 class Foamconfig():
     def __init__(self):
+        self.set_default_config()
         self.ensure_config_file("config.json")
         self.getConfig()
 
     def getConfig(self):
-        with open('config.json', 'r') as file:
-            config = json.load(file)
-
-        self.offset = config['OFFSET']
-        self.num_points = config['NUM_POINTS']
-        self.dim_index = config['DIM_INDEX']
-        self.trapz_idx = config['TRAPZ_IDX']
-        self.dim_flip_x = config['DIM_FLIP_X']
-        self.dim_flip_y = config['DIM_FLIP_Y']
-        self.dim_flip_z = config['DIM_FLIP_Z']
-        self.num_segments = config['NUM_SEGMENTS']
-        self.input_file = config['INPUT_FILE']
-        self.output_name = config['OUTPUT_NAME']
-        self.eps = config['EPS']
-        self.parallel_eps = config['PARALLEL_EPS']
-        self.x_eps = config['X_EPS']
-        self.hotwire_length = config['HOTWIRE_LENGTH']
-        self.hotwire_offset = config['HOTWIRE_OFFSET']
-        self.hotwire_width = config['HOTWIRE_WIDTH']
-        self.workpiece_size = config['WORKPIECE_SIZE']
-        self.gcode_init = config['GCODE_INIT']
-        self.gcode_axis = config['GCODE_AXIS']
-        self.gcode_g1 = config['GCODE_G1']
+        config = self.jsonconfig
+        self.offset = config.get('OFFSET', self.default_config["OFFSET"])
+        self.num_points = config.get('NUM_POINTS', self.default_config["NUM_POINTS"])
+        self.dim_index = config.get('DIM_INDEX', self.default_config["DIM_INDEX"])
+        self.trapz_idx = config.get('TRAPZ_IDX', self.default_config["TRAPZ_IDX"])
+        self.dim_flip_x = config.get('DIM_FLIP_X', self.default_config["DIM_FLIP_X"])
+        self.dim_flip_y = config.get('DIM_FLIP_Y', self.default_config["DIM_FLIP_Y"])
+        self.dim_flip_z = config.get('DIM_FLIP_Z', self.default_config["DIM_FLIP_Z"])
+        self.num_segments = config.get('NUM_SEGMENTS', self.default_config["NUM_SEGMENTS"])
+        self.input_file = config.get('INPUT_FILE', self.default_config["INPUT_FILE"])
+        self.output_name = config.get('OUTPUT_NAME', self.default_config["OUTPUT_NAME"])
+        self.eps = config.get('EPS', self.default_config["EPS"])
+        self.parallel_eps = config.get('PARALLEL_EPS', self.default_config["PARALLEL_EPS"])
+        self.x_eps = config.get('X_EPS', self.default_config["X_EPS"])
+        self.hotwire_length = config.get('HOTWIRE_LENGTH', self.default_config["HOTWIRE_LENGTH"])
+        self.hotwire_offset = config.get('HOTWIRE_OFFSET', self.default_config["HOTWIRE_OFFSET"])
+        self.hotwire_width = config.get('HOTWIRE_WIDTH', self.default_config["HOTWIRE_WIDTH"])
+        self.workpiece_size = config.get('WORKPIECE_SIZE', self.default_config["WORKPIECE_SIZE"])
+        self.gcode_init = config.get('GCODE_INIT', self.default_config["GCODE_INIT"])
+        self.gcode_axis = config.get('GCODE_AXIS', self.default_config["GCODE_AXIS"])
+        self.gcode_g1 = config.get('GCODE_G1', self.default_config["GCODE_G1"])
+        self.hotwire_width_factor = config.get('HOTWIRE_WIDTH_FACTOR', self.default_config["HOTWIRE_WIDTH_FACTOR"])
 
     def reset(self):
         self.getConfig()
@@ -54,7 +54,8 @@ class Foamconfig():
             "WORKPIECE_SIZE": self.workpiece_size,
             "GCODE_INIT": self.gcode_init,
             "GCODE_AXIS": self.gcode_axis,
-            "GCODE_G1": self.gcode_g1
+            "GCODE_G1": self.gcode_g1,
+            "HOTWIRE_WIDTH_FACETOR": self.hotwire_width_factor
         }
           
         with open("config.json", 'w') as file:
@@ -62,10 +63,11 @@ class Foamconfig():
 
     def ensure_config_file(self, file_path):
         if not os.path.exists(file_path):
-            self.set_default_config()
             with open(file_path, 'w') as f:
                 json.dump(self.default_config, f, indent=4)
             print(f"Configuration file created with default values at {file_path}")
+        with open('config.json', 'r') as file:
+            self.jsonconfig = json.load(file)
 
     def set_default_config(self):
         self.default_config = {
@@ -88,7 +90,8 @@ class Foamconfig():
             "WORKPIECE_SIZE": 600,
             "GCODE_INIT": "G17\nG21\n( SET ABSOLUTE MODE )\nG90\n( SET CUTTER COMPENSATION )\nG40\n( SET TOOL LENGTH OFFSET )\nG49\n( SET PATH CONTROL MODE )\nG64\n( SET FEED RATE MODE )\nG94\nF300\n",
             "GCODE_AXIS": ['X','Y','A','Z'],
-            "GCODE_G1": True
+            "GCODE_G1": True,
+            "HOTWIRE_WIDTH_FACTOR": 2.18
         }
 
 

@@ -96,9 +96,8 @@ class Foamslicer():
         else:
             m1 = 0
             m2 = self.config.workpiece_size
-        # TODO: implement this properly
-        # helpers.checkHotwireDim()
         offset = self.config.hotwire_length - self.config.hotwire_offset
+        helpers.checkHotwireDim(m1, m2)
         if(self.config.workpiece_size == self.config.hotwire_length):
             self.cp2e = self.cp2.copy()
         else:

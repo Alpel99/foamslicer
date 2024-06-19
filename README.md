@@ -10,12 +10,9 @@ gcode generator from stl or dxf files for airfoils (or other convex shapes)
     * problem with middle -> how to find, need to be already orth on 1 axis
 * probably lots of bugs still
 * catch more errors?
-* checkHotwireDim does exist, should be used
-    * is by far not correct, e.g. no dxf
 * curve padding is dependent on order of points
+    * is currently fine tho
 * input for curve padding
-* button to open config file
-    * reload on save
 
 ## todo Documentation
 * write proper documentation
@@ -56,12 +53,14 @@ python3 slicergui.py
 - HOTWIRE_WIDTH: width of the wire/how much is melted in mm
     - used by curve padding
 - WORKPIECE_SIZE: used if dxf files
-    * needs dimension of workpiece for proper offsets
+    - needs dimension of workpiece for proper offsets
 - GCODE_INIT: what commands should the GCODE start with
     - from [diyrcwings](https://www.diyrcwings.com/app/)
 - GCODE_AXIS: names for the gcode axis (might differ)
     - grbl is weird, we use XY, ZA
 - GCODE_G1: whether to use G0 or G1 commands as movement
+- HOTWIRE_WIDTH_FACTOR: factor determined by ratio of cut lengths
+    - experimental
 
 
 ## Walkthrough

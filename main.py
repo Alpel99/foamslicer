@@ -156,10 +156,10 @@ def shiftMesh(mesh):
     shifted_mesh = np.array(mesh) - minv
     return shifted_mesh
         
-def checkHotwireDim(maxmin):
-    cut_d = maxmin[0][config.dim_index] - maxmin[1][config.dim_index]
+def checkHotwireDim(m1, m2):
+    # cut_d = maxmin[0][config.dim_index] - maxmin[1][config.dim_index]
     # print("cut_d", cut_d)
-    d_diff = config.hotwire_length - cut_d
+    d_diff = config.hotwire_length - (m2-m1)
     if(d_diff) < 0:
         raise Exception("Distance in stl greater than HOTWIRE_LENGTH")
     

@@ -7,6 +7,7 @@ class Foamconfig():
         self.getConfig()
 
     def getConfig(self):
+        self.loadJson()
         config = self.jsonconfig
         self.offset = config.get('OFFSET', self.default_config["OFFSET"])
         self.num_points = config.get('NUM_POINTS', self.default_config["NUM_POINTS"])
@@ -66,6 +67,8 @@ class Foamconfig():
             with open(file_path, 'w') as f:
                 json.dump(self.default_config, f, indent=4)
             print(f"Configuration file created with default values at {file_path}")
+
+    def loadJson(self):
         with open('config.json', 'r') as file:
             self.jsonconfig = json.load(file)
 

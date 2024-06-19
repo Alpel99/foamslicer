@@ -1,5 +1,7 @@
 import tkinter.ttk as ttk
 import tkinter as tk
+from tkinter import scrolledtext, messagebox
+
 import matplotlib
 import matplotlib.pyplot as plt
 from foamslicer import Foamslicer
@@ -93,9 +95,50 @@ class MainApplication(tk.Frame):
         self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="active")
         self.gengcode.grid(row=14, columnspan=3, sticky="nsew")
 
+        self.gengcode = tk.Button(self.tool_bar, text="Open Config", command=self.openConfig)
+        self.gengcode.grid(row=15, columnspan=3, sticky="nsew")
+
         # Apply padding to all widgets in the toolbar
         for child in self.tool_bar.winfo_children():
             child.grid_configure(pady=3, padx=3)
+
+    def openConfig(self):
+        top = tk.Toplevel(self.parent)
+        top.title("Config Editor")
+        top.geometry("900x600")
+        
+        # Text widget with scrollbar
+        text_editor = scrolledtext.ScrolledText(top, width=40, height=10)
+        
+        # Pack the text editor and scrollbar
+        text_editor.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Load the config.json file into the text editor
+        self.load_config(text_editor)
+
+        # Save Button
+        save_button = tk.Button(top, text="Save Config", command=lambda: self.save_config(text_editor, top))
+        save_button.pack(side=tk.BOTTOM, padx=10, pady=10)
+
+    def load_config(self, text_editor):
+        try:
+            with open("config.json", 'r') as f:
+                config_content = f.read()
+                text_editor.insert('1.0', config_content)
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Config file not found!")
+
+    def save_config(self, text_editor, top):
+        try:
+            with open("config.json", 'w') as f:
+                config_content = text_editor.get('1.0', tk.END)
+                f.write(config_content)
+                # messagebox.showinfo("Success", "Config file saved successfully!")
+                top.destroy()  # Close the editor window after saving
+            self.slicer.config.getConfig()
+            self.setupToolbar()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save config file: {str(e)}")
 
     def switch3dExtended(self, swap=True):
         if swap: self.ext3d.config(relief="raised" if self.ext3d.cget("relief") == 'sunken' else "sunken")

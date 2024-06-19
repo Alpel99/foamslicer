@@ -53,7 +53,14 @@ class Foamslicer():
 
     def writeGCode(self):
         c = self.config
-        res = helpers.writeFile(self.cp1e, self.cp2e, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1)
+        if(self.cp1e is not None):
+            res = helpers.writeFile(self.cp1e, self.cp2e, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1)
+        elif(self.cp1 is not None):
+            res = helpers.writeFile(self.cp1, self.cp2, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1)
+        elif(self.c1 is not None):
+            res = helpers.writeFile(self.c1, self.c1, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1)
+        else:
+            return False
         return res
 
     def applyShapeOffset(self):
@@ -79,7 +86,11 @@ class Foamslicer():
         # TODO: implement this properly
         # helpers.checkHotwireDim()
         offset = self.config.hotwire_length - self.config.hotwire_offset
-        self.cp2e = helpers.getExtendedPoints(self.cp2, self.cp1, m2, m1, offset)
+        if(self.config.workpiece_size == self.config.hotwire_length):
+            self.cp2e = self.cp2.copy()
+        else:
+            self.cp2e = helpers.getExtendedPoints(self.cp2, self.cp1, m2, m1, offset)
+
         if(self.config.hotwire_offset > 0):
             self.cp1e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, -self.config.hotwire_offset)
         else:

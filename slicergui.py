@@ -90,7 +90,7 @@ class MainApplication(tk.Frame):
         self.ext3d = tk.Button(self.tool_bar, text="3D", command=self.switch3dExtended, state=self.extpoints.cget("state"), relief="raised")
         self.ext3d.grid(row=13, column=2,columnspan=1, sticky="nsew")
 
-        self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="disabled")
+        self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="active")
         self.gengcode.grid(row=14, columnspan=3, sticky="nsew")
 
         # Apply padding to all widgets in the toolbar
@@ -116,7 +116,7 @@ class MainApplication(tk.Frame):
 
     def extendPoints(self):
         wPSize = int(self.workPSize.get()) if self.workPSize.get() else self.slicer.config.workpiece_size
-        self.slicer.config.workPSize = wPSize
+        self.slicer.config.workpiece_size = wPSize
         self.slicer.getExtendedPoints()
         self.slicer.applyShapeOffset()
         if self.slicer.cp1e is not None and self.slicer.cp2e is not None:

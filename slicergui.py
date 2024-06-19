@@ -114,22 +114,22 @@ class MainApplication(tk.Frame):
         self.text_editor.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
         
         # Load the config.json file into the text editor
-        self.load_config(self.text_editor)
+        self.load_config()
 
         self.top.bind('<Control-s>', self.save_config)
         # Save Button
         save_button = tk.Button(self.top, text="Save Config", command=self.save_config)
         save_button.pack(side=tk.RIGHT, padx=10, pady=10)
 
-    def load_config(self, text_editor):
+    def load_config(self):
         try:
             with open("config.json", 'r') as f:
                 config_content = f.read()
-                text_editor.insert('1.0', config_content)
+                self.text_editor.insert('1.0', config_content)
         except FileNotFoundError:
             messagebox.showerror("Error", "Config file not found!")
 
-    def save_config(self):
+    def save_config(self, event=None):
         try:
             with open("config.json", 'w') as f:
                 config_content = self.text_editor.get('1.0', tk.END)
@@ -137,7 +137,7 @@ class MainApplication(tk.Frame):
                 # messagebox.showinfo("Success", "Config file saved successfully!")
                 self.top.destroy()  # Close the editor window after saving
             self.slicer.config.getConfig()
-            self.setupToolbar()
+            self.initData()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save config file: {str(e)}")
 
@@ -192,6 +192,7 @@ class MainApplication(tk.Frame):
         self.plot2d(self.slicer.c2, label="back")
 
     def initData(self):
+        self.resetPlot()
         self.setupToolbar()
         if self.slicer.dxf:
             self.plot2d(self.slicer.c1, label="front")

@@ -7,10 +7,10 @@ from slicerconfig import Foamconfig
 
 np.set_printoptions(suppress=True)
 
-def getExtremePoints(val, mesh, idx):
+def getExtremePoints(val, mesh, idx, eps):
     data = []
     for p in mesh:
-        if abs(p[idx] - val) < config.eps:
+        if abs(p[idx] - val) < eps:
             pn = []
             for j in range(0, len(p)):
                 if(j != idx):
@@ -156,10 +156,10 @@ def shiftMesh(mesh):
     shifted_mesh = np.array(mesh) - minv
     return shifted_mesh
         
-def checkHotwireDim(m1, m2):
+def checkHotwireDim(m1, m2, hotwire_length):
     # cut_d = maxmin[0][config.dim_index] - maxmin[1][config.dim_index]
     # print("cut_d", cut_d)
-    d_diff = config.hotwire_length - (m2-m1)
+    d_diff = hotwire_length - (m2-m1)
     if(d_diff) < 0:
         raise Exception("Distance in stl greater than HOTWIRE_LENGTH")
     
@@ -169,8 +169,8 @@ def getMeshMaxMin(mesh):
     maxmin[1] = np.max(mesh, axis=0)
     return maxmin
 
-def getOrderedExtremePoints(maxmin, mesh, idx, dim_idx, x_eps):
-    points = getExtremePoints(maxmin[idx][dim_idx], mesh, dim_idx)
+def getOrderedExtremePoints(maxmin, mesh, idx, dim_idx, x_eps, eps):
+    points = getExtremePoints(maxmin[idx][dim_idx], mesh, dim_idx, eps)
     # plotPoints(d1)
     #convex
     xmin = np.argmin(points[:, 0])
@@ -202,11 +202,11 @@ def getSegments(c1, c2):
     segment_indices = np.linspace(0, l, num_segments + 1, dtype=int)
     return num_segments, segment_indices
 
-def writeFile(c1p, c2p, offset, gcode_init, gcode_axis, g1):
-    file1 = open(config.output_name, "w")
+def writeFile(c1p, c2p, offset, gcode_init, gcode_axis, g1, output_name):
+    file1 = open(output_name, "w")
     file1.write(f"( foamslicer.py, at {datetime.datetime.now()} )\n")
     file1.close()
-    file1 = open(config.output_name, "a")
+    file1 = open(output_name, "a")
     writeGcodeInit(file1, gcode_init)
     writeOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, False)
     file1.write(("( SHAPE )\n"))
@@ -272,7 +272,7 @@ def find_trapezoid_corners(points):
     return np.array([min_x_point, max_x_point, min_y_point, max_y_point])
 
 
-def find_parallel_pairs(points):
+def find_parallel_pairs(points, parallel_eps):
     # Initialize list to store parallel pairs
     parallel_pairs = []
     
@@ -291,7 +291,7 @@ def find_parallel_pairs(points):
         slope1 = (y2 - y1) / (x2 - x1)
         slope2 = (y4 - y3) / (x4 - x3)
         # Check if slopes are equal (parallel lines)
-        if abs(abs(slope1) - abs(slope2)) < config.parallel_eps:
+        if abs(abs(slope1) - abs(slope2)) < parallel_eps:
             parallel_pairs.append((pair1, pair2))
     
     if(len(parallel_pairs) > 0):

@@ -67,11 +67,11 @@ class Foamslicer():
     def writeGCode(self):
         c = self.config
         if(self.cp1e is not None):
-            res = helpers.writeFile(self.cp1e, self.cp2e, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1)
+            res = helpers.writeFile(self.cp1e, self.cp2e, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1, self.config.output_name)
         elif(self.cp1 is not None):
-            res = helpers.writeFile(self.cp1, self.cp2, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1)
+            res = helpers.writeFile(self.cp1, self.cp2, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1, self.config.output_name)
         elif(self.c1 is not None):
-            res = helpers.writeFile(self.c1, self.c1, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1)
+            res = helpers.writeFile(self.c1, self.c1, c.offset, c.gcode_init, c.gcode_axis, c.gcode_g1, self.config.output_name)
         else:
             return False
         return res
@@ -97,7 +97,7 @@ class Foamslicer():
             m1 = 0
             m2 = self.config.workpiece_size
         offset = self.config.hotwire_length - self.config.hotwire_offset
-        helpers.checkHotwireDim(m1, m2)
+        helpers.checkHotwireDim(m1, m2, self.config.hotwire_length)
         if(self.config.workpiece_size == self.config.hotwire_length):
             self.cp2e = self.cp2.copy()
         else:
@@ -120,8 +120,8 @@ class Foamslicer():
 
     def getOrderedExtremePoints(self):
         c = self.config
-        self.c1 = helpers.getOrderedExtremePoints(self.maxmin, self.points, 0, c.dim_index, c.x_eps)
-        self.c2 = helpers.getOrderedExtremePoints(self.maxmin, self.points, 1, c.dim_index, c.x_eps)
+        self.c1 = helpers.getOrderedExtremePoints(self.maxmin, self.points, 0, c.dim_index, c.x_eps, c.eps)
+        self.c2 = helpers.getOrderedExtremePoints(self.maxmin, self.points, 1, c.dim_index, c.x_eps, c.eps)
 
     def getMeshMaxMin(self):
         self.maxmin = helpers.getMeshMaxMin(self.points)
@@ -156,7 +156,7 @@ class Foamslicer():
         align_idx = self.alignidxs[self.config.trapz_idx]
         hullpoints = self.points[self.hull.vertices][:, align_idx[0]]
         maxPoints = helpers.find_trapezoid_corners(hullpoints)
-        parallelPair = helpers.find_parallel_pairs(maxPoints)
+        parallelPair = helpers.find_parallel_pairs(maxPoints, self.config.parallel_eps)
         self.points = helpers.rotateMesh(self.points, parallelPair, align_idx[1], True)
 
     def getPoints(self):

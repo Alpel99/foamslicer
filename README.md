@@ -13,6 +13,7 @@ gcode generator from stl or dxf files for airfoils (or other convex shapes)
 * curve padding is dependent on order of points
     * is currently fine tho
 * input for curve padding
+* curve padding reset does not work or smthg
 
 ## todo Documentation
 * write proper documentation

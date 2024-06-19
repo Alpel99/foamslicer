@@ -1,7 +1,7 @@
 # constant xy offset from 0,0
 OFFSET = [10, 10]
 
-NUM_POINTS = 50
+NUM_POINTS = 500
 
 # which dim is linear
 DIM_INDEX = 1
@@ -63,4 +63,4 @@ F300
 GCODE_AXIS = ['X','Y','A','Z']
 
 # Write G1 instead of G0
-GCODE_G1 = False
+GCODE_G1 = True

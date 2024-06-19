@@ -60,7 +60,7 @@ G94
 F300
 '''
 
-GCODE_AXIS = ['X','Y','Z','A']
+GCODE_AXIS = ['X','Y','A','Z']
 
 # Write G1 instead of G0
 GCODE_G1 = False

@@ -13,6 +13,9 @@ gcode generator from stl or dxf files for airfoils (or other convex shapes)
 * checkHotwireDim does exist, should be used
     * is by far not correct, e.g. no dxf
 * curve padding is dependent on order of points
+* input for curve padding
+* button to open config file
+    * reload on save
 
 ## todo Documentation
 * write proper documentation

@@ -39,7 +39,7 @@ def orderPoints(points):
     angles = np.arctan2(vectors[:, 0], vectors[:, 1])
     angles = angles - np.pi/2
     angles = np.mod(angles + np.pi, 2 * np.pi) - np.pi
-    sorted_indices = np.argsort(angles)
+    sorted_indices = np.argsort(-angles)
     # sorted_indices = np.lexsort((angles, points[:, 1]))
     ordered = points[sorted_indices]
 

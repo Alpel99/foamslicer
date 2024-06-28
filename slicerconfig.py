@@ -56,7 +56,7 @@ class Foamconfig():
             "GCODE_INIT": self.gcode_init,
             "GCODE_AXIS": self.gcode_axis,
             "GCODE_G1": self.gcode_g1,
-            "HOTWIRE_WIDTH_FACETOR": self.hotwire_width_factor
+            "HOTWIRE_WIDTH_FACTOR": self.hotwire_width_factor
         }
           
         with open("config.json", 'w') as file:

@@ -105,7 +105,98 @@ python3 slicergui.py
 
 
 # Dev Documentation
-## yeah, have fun
+* want to give some explanation/train of thought for functions in this
+## main.py/helpers functions
+### readDXF
+* ezdxf library
+* iterate through modelspace
+* check for dxftypes
+* can currently parse
+    * LINE
+    * POLYLINE
+    * SPLINE
+* need to add more, if not enough
+* throws warning which dxftypes are not recognized
+
+### read stl
+* uses meshio
+* pretty straight forward
+* get points from mesh as numpy 3d array
+
+### alignMeshAxis
+* function in foamslicer.py
+* uses multiple functions and a bit of magic
+* take convex hull of points (scipy)
+* trying to align some 2d view (top, left, front side)
+    * towards one axis (most outer points parallel to it)
+* `find_trapezoid_corners` on hullpoints to find points with max x/y
+    * points that should be aligned
+* `find_parallel_pairs` orders these maxpoints and tries to find 2 parallel lines to align with
+* `rotateMesh` uses a rotation matrix on the entire mesh
+    * matrix is 3d, but one row+column is 001, so doesn't change a thing
+* approach/routine could need some improvement overall
+
+### flipMesh
+* flips points (*-1) and applies new offset for geometry to lie in > 0,0
+
+### getOrderedExtremePoints
+* have aligned mesh and values of max plane
+    * get those points
+* order the extreme points by calculating `atan2` from its xmin point
+    * ensures that the top part is first instead of the bottom
+    * could use some barycenter/mean aswell, xmin is easy and works
+
+### getSplines
+* need plines to generate evenly distributed points on the airfoil shape
+    * need those points to cut extend the points properly to motor axis
+    * helps for even gcode mvt
+* need unique points for splines -> filter xvalues
+* parameterize splines by distance -> cumulative sum of lengths
+* iterate over points, keep track of length of current segment, next spline if too long
+* use scipy `make_interp_spline`
+    * once for x and once for y
+* apparently also works very well with just 1 spline for the entire airfoil 
+
+### getPointsFromSplines
+* iterate previously generate splines
+* keep track of distance to get even points
+
+### getExtendedPoints
+* extend points to motor planes to cut the proper shape out of foam
+* get proper dimensions of workpiece/cutter in config
+* iterate through all point pairs
+* calculate line through both, get value of it at required distance
+
+### writeGCode
+* writes gcode file
+* one function reused to write G1/G0 lines
+* iterate all points and put proper values
+* quite a bit of config stuff (G1 vs G0, axis names)
+    * so lots of parameters
+
+### curveNormalization/padCurve/curve padding
+* has bad names
+* is needed because hotwire smelts its way -> has width
+    * makes final result smaller than input lines
+* takes line between point left and right of current one
+* normal of this line with length of offset value is added
+* can yield shitty results at trailing edge
+* currently uses parameter `HOTWIRE_WIDTH_FACTOR`
+    * parameter to multiply the ratio of both lengths
+    * pads the 2nd (shorter) one with more (times this factor)
+
+### generate3DPoints
+* in slicer
+* takes even and extended points
+* puts them at proper distances in 3d plot
+* used to check if extension calculations make sense
+
+### variables
+* c1: input points
+* cp1: even points (generated from c1)
+* cp1old: even points, used to not stack curve padding
+* cp1e: extended points -> motor plane movements
+    * these should be used to write gcode
 
 # License
 MIT

@@ -192,6 +192,8 @@ class MainApplication(tk.Frame):
         self.plot2d(self.slicer.c2, label="back")
 
     def initData(self):
+        self.slicer.reset()
+        self.slicer.readFiles()
         self.resetPlot()
         self.setupToolbar()
         if self.slicer.dxf:

@@ -10,11 +10,14 @@ class Foamslicer():
     def __init__(self):
         self.config = slicerconfig.Foamconfig()
         self.alignidxs = [[[0,1],2], [[1,2],0], [[0,2],1]]
+        self.dxf = False
+        self.reset()
+
+    def reset(self):
         self.c1 = self.c2 = None
         self.cp1 = self.cp2 = None
         self.cp1e = self.cp2e = None
         self.c1old = self.c2old = None
-        self.dxf = False
 
     def generate3DPoints(self):
         self.applyShapeOffset()

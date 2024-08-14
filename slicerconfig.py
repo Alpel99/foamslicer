@@ -30,6 +30,8 @@ class Foamconfig():
         self.gcode_axis = config.get('GCODE_AXIS', self.default_config["GCODE_AXIS"])
         self.gcode_g1 = config.get('GCODE_G1', self.default_config["GCODE_G1"])
         self.hotwire_width_factor = config.get('HOTWIRE_WIDTH_FACTOR', self.default_config["HOTWIRE_WIDTH_FACTOR"])
+        self.hotwire_offset_front = config.get("HOTWIRE_OFFSET_FRONT", self.default_config["HOTWIRE_OFFSET_FRONT"])
+        self.hotwire_offset_back = config.get("HOTWIRE_OFFSET_BACK", self.default_config["HOTWIRE_OFFSET_BACK"])
 
     def reset(self):
         self.getConfig()
@@ -56,7 +58,9 @@ class Foamconfig():
             "GCODE_INIT": self.gcode_init,
             "GCODE_AXIS": self.gcode_axis,
             "GCODE_G1": self.gcode_g1,
-            "HOTWIRE_WIDTH_FACTOR": self.hotwire_width_factor
+            "HOTWIRE_WIDTH_FACTOR": self.hotwire_width_factor,
+            "HOTWIRE_OFFSET_FRONT": self.hotwire_offset_front,
+            "HOTWIRE_OFFSET_BACK": self.hotwire_offset_back
         }
           
         with open("config.json", 'w') as file:
@@ -94,7 +98,9 @@ class Foamconfig():
             "GCODE_INIT": "G17\nG21\n( SET ABSOLUTE MODE )\nG90\n( SET CUTTER COMPENSATION )\nG40\n( SET TOOL LENGTH OFFSET )\nG49\n( SET PATH CONTROL MODE )\nG64\n( SET FEED RATE MODE )\nG94\nF300\n",
             "GCODE_AXIS": ['X','Y','A','Z'],
             "GCODE_G1": True,
-            "HOTWIRE_WIDTH_FACTOR": 2.18
+            "HOTWIRE_WIDTH_FACTOR": 2.18,
+            "HOTWIRE_OFFSET_FRONT": 1,
+            "HOTWIRE_OFFSET_BACK": 1,
         }
 
 

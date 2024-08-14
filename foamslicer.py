@@ -52,20 +52,24 @@ class Foamslicer():
             self.c1old = self.c1.copy()
             self.c2old = self.c2.copy()
 
-        # interpolation with offset factor
-        l1 = helpers.getLength(self.c1)
-        l2 = helpers.getLength(self.c2)
-        if(l2 > l1):
-            l1,l2 = l2,l1
-        deltaL = l1-l2
-        avgL = (l1+l2)/2
-        y = self.config.hotwire_width_factor * deltaL/avgL + 1
-        
-        f1 = 1 if l1 > l2 else y
-        f2 = 1 if l2 > l1 else y
-        # print(f1*self.config.hotwire_width, f2*self.config.hotwire_width)
-        self.c1 = helpers.padCurve(self.c1old, f1*self.config.hotwire_width)
-        self.c2 = helpers.padCurve(self.c2old, f2*self.config.hotwire_width)
+        if(self.config.hotwire_width_factor > 0):
+            # interpolation with offset factor
+            l1 = helpers.getLength(self.c1)
+            l2 = helpers.getLength(self.c2)
+            if(l2 > l1):
+                l1,l2 = l2,l1
+            deltaL = l1-l2
+            avgL = (l1+l2)/2
+            y = self.config.hotwire_width_factor * deltaL/avgL + 1
+            
+            f1 = 1 if l1 > l2 else y
+            f2 = 1 if l2 > l1 else y
+            # print(f1*self.config.hotwire_width, f2*self.config.hotwire_width)
+            self.c1 = helpers.padCurve(self.c1old, f1*self.config.hotwire_width)
+            self.c2 = helpers.padCurve(self.c2old, f2*self.config.hotwire_width)
+        else:
+            self.c1 = helpers.padCurve(self.c1old, self.config.hotwire_offset_front)
+            self.c2 = helpers.padCurve(self.c2old, self.config.hotwire_offset_back)
 
     def writeGCode(self):
         c = self.config
@@ -104,8 +108,9 @@ class Foamslicer():
         if(self.config.workpiece_size == self.config.hotwire_length):
             self.cp2e = self.cp2.copy()
         else:
-            self.cp2e = helpers.getExtendedPoints(self.cp2, self.cp1, m2, m1, offset)
-
+            # self.cp2e = helpers.getExtendedPoints(self.cp2, self.cp1, m2, m1, offset)
+            # fix by alexey & valentin
+            self.cp2e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, offset)
         if(self.config.hotwire_offset > 0):
             self.cp1e = helpers.getExtendedPoints(self.cp1, self.cp2, m1, m2, -self.config.hotwire_offset)
         else:

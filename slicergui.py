@@ -27,6 +27,7 @@ class MainApplication(tk.Frame):
         self.parent.grid_columnconfigure(1, minsize=200, weight=0)
                 
         self.parent.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.pnumberswitch = False
         self.slicer = Foamslicer()
         self.setupPlot()
         if not self.slicer.config.input_file:
@@ -79,7 +80,9 @@ class MainApplication(tk.Frame):
         self.numSegments.grid(row=10, column=1)
         self.numSegments.insert(tk.END, self.slicer.config.num_segments)
         self.evpoints = tk.Button(self.tool_bar, text="Even Points", command=self.evenPoints, state="disabled")
-        self.evpoints.grid(columnspan=3, sticky="nsew")
+        self.evpoints.grid(row=11, column=0, columnspan=2, sticky="nsew")
+        self.pnumbers = tk.Button(self.tool_bar, text="Numbers", command=self.switchPNumbers, state="normal", relief="raised" if not self.pnumberswitch else "sunken")
+        self.pnumbers.grid(row=11, column=2,columnspan=1, sticky="nsew")
         
         if(self.slicer.dxf):
             tk.Label(self.tool_bar, text="WorkP Size").grid(row=12, column=0)
@@ -89,7 +92,7 @@ class MainApplication(tk.Frame):
         self.extpoints = tk.Button(self.tool_bar, text="Extend Points", command=self.extendPoints, state="disabled")
         self.extpoints.grid(row=13, column=0, columnspan=2, sticky="nsew")
 
-        self.ext3d = tk.Button(self.tool_bar, text="3D", command=self.switch3dExtended, state=self.extpoints.cget("state"), relief="raised")
+        self.ext3d = tk.Button(self.tool_bar, text="3D", command=self.switchPNumbers, state=self.extpoints.cget("state"), relief="raised")
         self.ext3d.grid(row=13, column=2,columnspan=1, sticky="nsew")
 
         self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="active")
@@ -140,6 +143,13 @@ class MainApplication(tk.Frame):
             self.initData()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save config file: {str(e)}")
+
+    def switchPNumbers(self, swap=True):
+        if swap: self.pnumbers.config(relief="raised" if self.pnumbers.cget("relief") == 'sunken' else "sunken")
+        if self.pnumbers.cget("relief") == 'raised':
+            self.pnumberswitch = False
+        else:
+            self.pnumberswitch = True
 
     def switch3dExtended(self, swap=True):
         if swap: self.ext3d.config(relief="raised" if self.ext3d.cget("relief") == 'sunken' else "sunken")
@@ -279,6 +289,9 @@ class MainApplication(tk.Frame):
         # self.ax.legend()
         self.legend = self.ax.legend(loc='lower center', bbox_to_anchor=(0.5,1))
         self.ax.add_artist(self.legend)
+        if self.pnumberswitch:
+            for i in range(0,len(points)):
+                self.ax.annotate(i, (points[i, 0], points[i, 1]))
         self.figure.canvas.draw()
 
 

@@ -128,14 +128,17 @@ def writeGcodeInit(file, gcode_init):
     file.write(gcode_init)
     file.write("\n")
     
-def writeG1Lines(file, points1, points2, gcode_axis, g1):
-    for p1, p2 in zip(points1, points2):
+def writeG1Lines(file, points1, points2, gcode_axis, g1, numbercomments=False):
+    for i, (p1, p2) in enumerate(zip(points1, points2)):
         X = round(p1[0], 2)
         Y = round(p1[1], 2)
         A = round(p2[0], 2)
         Z = round(p2[1], 2)
         v0, v1, v2, v3 = gcode_axis
-        file.write("G%i %c%.2f %c%.2f %c%.2f %c%.2f\n" % (g1, v0, X, v1, Y, v2, A, v3, Z))
+        if(numbercomments):
+            file.write("G%i %c%.2f %c%.2f %c%.2f %c%.2f ( Point#%i )\n" % (g1, v0, X, v1, Y, v2, A, v3, Z, i))
+        else:
+            file.write("G%i %c%.2f %c%.2f %c%.2f %c%.2f\n" % (g1, v0, X, v1, Y, v2, A, v3, Z))
         
 def writeOffsetMvt(file, c1o, c2o, offset, gcode_axis, g1):
     file.write(("( OFFSET )\n"))
@@ -210,7 +213,7 @@ def writeFile(c1p, c2p, offset, gcode_init, gcode_axis, g1, output_name):
     writeGcodeInit(file1, gcode_init)
     writeOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, False)
     file1.write(("( SHAPE )\n"))
-    writeG1Lines(file1, c1p + offset, c2p + offset, gcode_axis, g1)
+    writeG1Lines(file1, c1p + offset, c2p + offset, gcode_axis, g1, numbercomments=True)
     reverseOffsetMvt(file1, c1p[0], c2p[0], offset, gcode_axis, False)
     return True
 

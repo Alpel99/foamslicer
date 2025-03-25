@@ -98,8 +98,8 @@ class MainApplication(tk.Frame):
         self.gengcode = tk.Button(self.tool_bar, text="Generate GCODE", command=self.generateGcode, state="active")
         self.gengcode.grid(row=14, columnspan=3, sticky="nsew")
 
-        self.gengcode = tk.Button(self.tool_bar, text="Open Config", command=self.openConfig)
-        self.gengcode.grid(row=15, columnspan=3, sticky="nsew")
+        self.openConfig = tk.Button(self.tool_bar, text="Open Config", command=self.openConfig)
+        self.openConfig.grid(row=15, columnspan=3, sticky="nsew")
 
         # Apply padding to all widgets in the toolbar
         for child in self.tool_bar.winfo_children():
